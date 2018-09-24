@@ -9,8 +9,11 @@ MUMSHMC_FLAGS = -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined 
 MUMSHMC = mumsh_memory_check
 .PHONY: clean
 
-all: $(MUMSH) $(MUMSHMC)
+#all: $(MUMSH) $(MUMSHMC)
 	@echo mumsh successfully constructed
+
+all: $(MUMSH_SRC)
+	$(CC) $(CFLAGS) -o $(MUMSH) $(MUMSH_SRC)
 
 $(MUMSH): $(MUMSH_SRC)
 	$(CC) $(CFLAGS) -o $(MUMSH) $(MUMSH_SRC)
@@ -26,3 +29,6 @@ clean:
 
 gcc: $(MUMSH_SRC)
 	$(CCg) $(CgFLAGS) -o $(MUMSH) $(MUMSH_SRC)
+
+tar:all
+	tar -cvzf p1.tar makefile mumsh.c
