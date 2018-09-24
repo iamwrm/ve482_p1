@@ -6,6 +6,16 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+void clear_buffer(char* line, char** argv)
+{
+	*line = '\0';
+	int position = 0;
+	while (argv[position] != NULL) {
+		argv[position] = NULL;
+		position++;
+	}
+}
+
 int parse_cmd(char* line, char** argv)
 {
 	int position = 0;
@@ -22,8 +32,8 @@ int parse_cmd(char* line, char** argv)
 		position++;
 		arg = strtok(NULL, " \t\r\n\a");
 	}
+	argv[position] = '\0';
 	return 0;
-	argv[position] = NULL;
 }
 
 // return if_esc
@@ -32,6 +42,9 @@ int process_cmd(char** argv, char* line)
 	// size_t size = strlen(line_input);
 	int size = 1;
 	int i = 0;
+	if (argv[0]==NULL){
+		return 0;
+	}
 	if (strcmp(argv[0], "exit") == 0) {
 		free(line);
 		exit(0);
@@ -62,6 +75,7 @@ int main()
 		parse_cmd(line, argv);
 
 		if_esc = process_cmd(argv, line);
+		clear_buffer(line, argv);
 		if (if_esc) {
 			break;
 		}
