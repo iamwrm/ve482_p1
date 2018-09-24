@@ -70,12 +70,14 @@ int parse_cmd(char* line, char** argv)
 		exit(EXIT_FAILURE);
 	}
 
-	arg = strtok(line, " \t\r\n\a");
+	char* sep_er = " \t\n";
+	// char* sep_er = " \t\r\n\a";
+	arg = strtok(line, sep_er);
 
 	while (arg != NULL) {
 		argv[position] = arg;
 		position++;
-		arg = strtok(NULL, " \t\r\n\a");
+		arg = strtok(NULL, sep_er);
 	}
 	argv[position] = NULL;
 	return 0;
@@ -202,9 +204,15 @@ int process_cmd(char** argv, char* line)
 			}
 		}
 
-		if (execvp(*argv, argv) < 0) {
-			printf("system func failed\n");
-			exit(1);
+		int exe_return_value = execvp(*argv, argv);
+		fflush(stderr);
+		fflush(stdout);
+
+		if (exe_return_value < 0) {
+			fprintf(stderr, "Error: no such file or directory\n");
+			fflush(stderr);
+			fflush(stdout);
+			exit(0);
 		}
 
 	} else {  // parent
@@ -227,6 +235,8 @@ int main()
 
 	char* sh_name = "mumsh $ ";
 	printf("%s", sh_name);
+	fflush(stdout);
+	fflush(stderr);
 	//	while (1) {
 	while (getline(&line, &capacity, stdin)) {
 		// while (getline(&line, &capacity, stdin)) {
@@ -242,12 +252,12 @@ int main()
 		clear_buffer(line, argv);
 
 		printf("%s", sh_name);
+		fflush(stdout);
 		if (if_esc) {
 			break;
 		}
 	}
 
 	free(line);
-
 	return 0;
 }

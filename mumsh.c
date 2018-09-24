@@ -147,8 +147,14 @@ int process_cmd(char** argv, char* line)
 			}
 		}
 
-		if (execvp(*argv, argv) < 0) {
-			printf("system func failed\n");
+		int exe_return_value = execvp(*argv, argv);
+		fflush(stderr);
+		fflush(stdout);
+
+		if (exe_return_value < 0) {
+			fprintf(stderr, "Error: no such file or directory\n");
+			fflush(stderr);
+			fflush(stdout);
 			exit(1);
 		}
 
