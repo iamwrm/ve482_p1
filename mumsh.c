@@ -42,7 +42,7 @@ int process_cmd(char** argv, char* line)
 	// size_t size = strlen(line_input);
 	int size = 1;
 	int i = 0;
-	if (argv[0]==NULL){
+	if (argv[0] == NULL) {
 		return 0;
 	}
 	if (strcmp(argv[0], "exit") == 0) {
@@ -50,10 +50,22 @@ int process_cmd(char** argv, char* line)
 		exit(0);
 	}
 
-	while (argv[i] != '\0') {
-		printf("%s\n", argv[i]);
-		i++;
+	// =================
+	pid_t pid;
+	int status;
+
+	pid = fork();
+
+	if (pid == 0) {  // child
+		if (execvp(*argv, argv) < 0) {
+			printf("system func failed\n");
+			exit(1);
+		}
+	} else {  // parent
+		while (wait(&status) != pid) {
+		}
 	}
+	// =================
 	return 0;
 }
 
@@ -73,9 +85,10 @@ int main()
 		getline(&line, &capacity, stdin);
 
 		parse_cmd(line, argv);
-
 		if_esc = process_cmd(argv, line);
+
 		clear_buffer(line, argv);
+
 		if (if_esc) {
 			break;
 		}
