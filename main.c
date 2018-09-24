@@ -165,8 +165,8 @@ int process_cmd(char** argv, char* line)
 			// '_+'
 			if (file_redirect_flag == 3) {
 				char* filename = argv[re_r_pos + 1];
-				int outfile =
-				    open(filename, FLAG_APPEND, MODE_WR);
+				int outfile = open(
+				    filename, O_WRONLY | O_APPEND, MODE_WR);
 
 				dup2(outfile, STDOUT_FILENO);
 			}
@@ -226,9 +226,14 @@ int main()
 	int if_esc = 0;
 
 	char* sh_name = "mumsh $ ";
-	while (1) {
-		printf("%s", sh_name);
-		getline(&line, &capacity, stdin);
+	printf("%s", sh_name);
+	//	while (1) {
+	while (getline(&line, &capacity, stdin)) {
+		// while (getline(&line, &capacity, stdin)) {
+		// fflush(stdout);
+		// fflush(stderr);
+		// getline(&line, &capacity, stdin);
+		// if (fgets(line, capacity, stdin) == NULL) continue;
 
 		parse_cmd(line, argv);
 		// parse_cmd1(line, argv);
@@ -236,6 +241,7 @@ int main()
 
 		clear_buffer(line, argv);
 
+		printf("%s", sh_name);
 		if (if_esc) {
 			break;
 		}
