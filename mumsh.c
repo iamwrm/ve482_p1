@@ -1,4 +1,5 @@
 #define _XOPEN_SOURCE 700
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -32,7 +33,7 @@ int parse_cmd(char* line, char** argv)
 		position++;
 		arg = strtok(NULL, " \t\r\n\a");
 	}
-	argv[position] = '\0';
+	argv[position] = NULL;
 	return 0;
 }
 
@@ -50,17 +51,58 @@ int process_cmd(char** argv, char* line)
 		exit(0);
 	}
 
+	// if redirect
+	int file_redirect_flag = 0;
+	int re_l_pos = 0;
+	int re_r_pos = 0;
+
+	i = 0;
+	while (argv[i] != NULL) {
+		if (strcmp(argv[i], ">") == 0) {
+			file_redirect_flag = 1;
+			re_r_pos = i;
+			argv[i] = NULL;
+			continue;
+		}
+		if (strcmp(argv[i], "<") == 0) {
+			file_redirect_flag = 2;
+			re_l_pos = i;
+			argv[i] = NULL;
+			continue;
+		}
+		i++;
+	}
 	// =================
+
 	pid_t pid;
 	int status;
 
 	pid = fork();
 
-	if (pid == 0) {  // child
+	if (pid == 0) {
+		// child
+		if (file_redirect_flag > 0) {
+			// file redirect happens
+			char* filename = argv[re_r_pos + 1];
+			// char* filename = "a.txt";
+			int outfile =
+			    open(filename, O_CREAT | O_WRONLY, S_IRWXU);
+
+			if (dup2(outfile, STDOUT_FILENO) != STDOUT_FILENO) {
+				fprintf(stderr,
+					"Error: failed to redirect standard "
+					"output\n");
+			}
+			// execvp(*argv, argv);
+			// fprintf(stderr, "an error occurred in execvp\n");
+			// abort();
+		}
+
 		if (execvp(*argv, argv) < 0) {
 			printf("system func failed\n");
 			exit(1);
 		}
+
 	} else {  // parent
 		while (wait(&status) != pid) {
 		}

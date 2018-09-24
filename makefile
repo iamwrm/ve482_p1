@@ -1,5 +1,7 @@
 CC = clang
+CCg = gcc
 CFLAGS = -std=c11 -O2 -Wall -Wextra -pedantic  -g
+CgFLAGS = -std=c11 -O2 -Wall -Wextra -pedantic  -g
 #CFLAGS = -std=c11 -O2 -Wall -Wextra -Werror -pedantic -Wno-unused-result
 MUMSH_SRC = mumsh.c
 MUMSH = mumsh
@@ -21,3 +23,6 @@ $(MUMSHMC) : $(MUMSH_SRC)
 
 clean:
 	$(RM) *.o *.a *~ $(MUMSH) $(MUMSHMC)
+
+gcc: $(MUMSH_SRC)
+	$(CCg) $(CgFLAGS) -o $(MUMSH) $(MUMSH_SRC)
