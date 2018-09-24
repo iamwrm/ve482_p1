@@ -26,4 +26,5 @@ clean:
 	$(RM) *.o *.a *~ $(MUMSH) $(MUMSHMC)
 
 tar:all
+	rm p1.tar
 	tar -cvzf p1.tar Makefile main.c

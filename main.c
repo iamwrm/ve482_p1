@@ -87,6 +87,8 @@ int parse_cmd(char* line, char** argv)
 int process_cmd(char** argv, char* line)
 {
 	// size_t size = strlen(line_input);
+	fflush(stdout);
+	fflush(stderr);
 	int size = 1;
 	int i = 0;
 	if (argv[0] == NULL) {
@@ -154,6 +156,8 @@ int process_cmd(char** argv, char* line)
 
 	if (pid == 0) {
 		// child
+		fflush(stdout);
+		fflush(stderr);
 		if (file_redirect_flag > 0) {
 			// file redirect happens
 			// '_>'
@@ -194,8 +198,11 @@ int process_cmd(char** argv, char* line)
 			if (file_redirect_flag == 5) {
 				char* out_file_name = argv[re_r_pos + 1];
 				char* in_file_name = argv[re_l_pos + 1];
+				// int out_file =
+				//   open(out_file_name, FLAG_APPEND, MODE_WR);
 				int out_file =
-				    open(out_file_name, FLAG_APPEND, MODE_WR);
+				    open(out_file_name, O_WRONLY | O_APPEND,
+					 MODE_WR);
 				int in_file =
 				    open(in_file_name, FLAG_READ, MODE_WR);
 
@@ -204,6 +211,8 @@ int process_cmd(char** argv, char* line)
 			}
 		}
 
+		fflush(stdout);
+		fflush(stderr);
 		int exe_return_value = execvp(*argv, argv);
 		fflush(stderr);
 		fflush(stdout);
