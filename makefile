@@ -10,8 +10,8 @@ MUMSHMC = mumsh_memory_check
 all: $(MUMSH) $(MUMSHMC)
 	@echo mumsh successfully constructed
 
-#all: $(MUMSH_SRC)
-	#$(CC) $(CFLAGS) -o $(MUMSH) $(MUMSH_SRC)
+old: mumsh.c
+	$(CC) $(CFLAGS) -o mumshold mumsh.c
 
 $(MUMSH): $(MUMSH_SRC)
 	$(CC) $(CFLAGS) -o $(MUMSH) $(MUMSH_SRC)

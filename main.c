@@ -133,6 +133,8 @@ int process_cmd(char** argv, char* line)
 
 			} else if (file_redirect_flag == 3) {
 				file_redirect_flag = 5;
+			} else {
+				file_redirect_flag = 2;
 			}
 			re_l_pos = i;
 			argv[i] = NULL;
