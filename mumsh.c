@@ -59,14 +59,22 @@ int process_cmd(char** argv, char* line)
 	i = 0;
 	while (argv[i] != NULL) {
 		if (strcmp(argv[i], ">") == 0) {
-			file_redirect_flag = 1;
+			if (file_redirect_flag == 2) {
+				file_redirect_flag = 4;
+			} else {
+				file_redirect_flag = 1;
+			}
 			re_r_pos = i;
 			argv[i] = NULL;
 			i++;
 			continue;
 		}
 		if (strcmp(argv[i], ">>") == 0) {
-			file_redirect_flag = 3;
+			if (file_redirect_flag == 2) {
+				file_redirect_flag = 5;
+			} else {
+				file_redirect_flag = 3;
+			}
 			re_r_pos = i;
 			argv[i] = NULL;
 			i++;
@@ -106,6 +114,36 @@ int process_cmd(char** argv, char* line)
 				    S_IRWXU);
 
 				dup2(outfile, STDOUT_FILENO);
+			}
+			if (file_redirect_flag == 2) {
+				char* filename = argv[re_l_pos + 1];
+				int outfile = open(filename, O_RDWR | O_CREAT,
+						   S_IRUSR | S_IWUSR);
+
+				dup2(outfile, STDIN_FILENO);
+			}
+			if (file_redirect_flag == 4) {
+				char* out_file_name = argv[re_r_pos + 1];
+				char* in_file_name = argv[re_l_pos + 1];
+				int out_file = open(
+				    out_file_name, O_CREAT | O_WRONLY, S_IRWXU);
+				int in_file = open(in_file_name,
+						   O_CREAT | O_WRONLY, S_IRWXU);
+
+				dup2(out_file, STDOUT_FILENO);
+				dup2(in_file, STDIN_FILENO);
+			}
+			if (file_redirect_flag == 5) {
+				char* out_file_name = argv[re_r_pos + 1];
+				char* in_file_name = argv[re_l_pos + 1];
+				int out_file = open(
+				    out_file_name,
+				    O_CREAT | O_APPEND | O_WRONLY, S_IRWXU);
+				int in_file = open(in_file_name,
+						   O_CREAT | O_WRONLY, S_IRWXU);
+
+				dup2(out_file, STDOUT_FILENO);
+				dup2(in_file, STDIN_FILENO);
 			}
 		}
 
