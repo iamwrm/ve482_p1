@@ -7,6 +7,11 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#define MODE_WR 0666
+#define FLAG_READ O_RDONLY | O_CREAT
+#define FLAG_APPEND O_RDONLY | O_CREAT
+#define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
+
 void insert_blank(char* line, int pos)
 {
 	int i = pos;
@@ -123,7 +128,12 @@ int process_cmd(char** argv, char* line)
 			continue;
 		}
 		if (strcmp(argv[i], "<") == 0) {
-			file_redirect_flag = 2;
+			if (file_redirect_flag == 1) {
+				file_redirect_flag = 4;
+
+			} else if (file_redirect_flag == 3) {
+				file_redirect_flag = 5;
+			}
 			re_l_pos = i;
 			argv[i] = NULL;
 			i++;
@@ -142,35 +152,37 @@ int process_cmd(char** argv, char* line)
 		// child
 		if (file_redirect_flag > 0) {
 			// file redirect happens
+			// '_>'
 			if (file_redirect_flag == 1) {
 				char* filename = argv[re_r_pos + 1];
 				int outfile =
-				    open(filename, O_CREAT | O_WRONLY, S_IRWXU);
+				    open(filename, FLAGS_WRITE, MODE_WR);
 
 				dup2(outfile, STDOUT_FILENO);
 			}
+			// '_+'
 			if (file_redirect_flag == 3) {
 				char* filename = argv[re_r_pos + 1];
-				int outfile = open(
-				    filename, O_CREAT | O_APPEND | O_WRONLY,
-				    S_IRWXU);
+				int outfile =
+				    open(filename, FLAG_APPEND, MODE_WR);
 
 				dup2(outfile, STDOUT_FILENO);
 			}
+			// '<_'
 			if (file_redirect_flag == 2) {
 				char* filename = argv[re_l_pos + 1];
-				int outfile = open(filename, O_RDWR | O_CREAT,
-						   S_IRUSR | S_IWUSR);
+				int in_file =
+				    open(filename, FLAG_READ, MODE_WR);
 
-				dup2(outfile, STDIN_FILENO);
+				dup2(in_file, STDIN_FILENO);
 			}
 			if (file_redirect_flag == 4) {
 				char* out_file_name = argv[re_r_pos + 1];
 				char* in_file_name = argv[re_l_pos + 1];
-				int out_file = open(
-				    out_file_name, O_CREAT | O_WRONLY, S_IRWXU);
-				int in_file = open(in_file_name,
-						   O_CREAT | O_WRONLY, S_IRWXU);
+				int out_file =
+				    open(out_file_name, FLAGS_WRITE, MODE_WR);
+				int in_file =
+				    open(in_file_name, FLAG_READ, MODE_WR);
 
 				dup2(out_file, STDOUT_FILENO);
 				dup2(in_file, STDIN_FILENO);
@@ -178,11 +190,10 @@ int process_cmd(char** argv, char* line)
 			if (file_redirect_flag == 5) {
 				char* out_file_name = argv[re_r_pos + 1];
 				char* in_file_name = argv[re_l_pos + 1];
-				int out_file = open(
-				    out_file_name,
-				    O_CREAT | O_APPEND | O_WRONLY, S_IRWXU);
-				int in_file = open(in_file_name,
-						   O_CREAT | O_WRONLY, S_IRWXU);
+				int out_file =
+				    open(out_file_name, FLAG_APPEND, MODE_WR);
+				int in_file =
+				    open(in_file_name, FLAG_READ, MODE_WR);
 
 				dup2(out_file, STDOUT_FILENO);
 				dup2(in_file, STDIN_FILENO);
