@@ -27,11 +27,15 @@ int parse_cmd(char* line, char** argv)
 }
 
 // return if_esc
-int process_cmd(char** argv)
+int process_cmd(char** argv, char* line)
 {
 	// size_t size = strlen(line_input);
 	int size = 1;
 	int i = 0;
+	if (strcmp(argv[0], "exit") == 0) {
+		free(line);
+		exit(0);
+	}
 
 	while (argv[i] != '\0') {
 		printf("%s\n", argv[i]);
@@ -57,7 +61,7 @@ int main()
 
 		parse_cmd(line, argv);
 
-		if_esc = process_cmd(argv);
+		if_esc = process_cmd(argv, line);
 		if (if_esc) {
 			break;
 		}
