@@ -7,6 +7,43 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+void insert_blank(char* line, int pos)
+{
+	int i = pos;
+
+	char temp[1024];
+	strcpy(temp, line + pos);
+	line[pos] = ' ';
+	strcpy(line + pos + 1, temp);
+}
+
+void arraw_sep(char* line)
+{
+	int i = 0;
+	while (line[i] != '\0') {
+		if (line[i] == '<') {
+			insert_blank(line, i);
+			insert_blank(line, i + 2);
+			i++;
+			// insert_blank(line, i);
+		}
+		if (line[i] == '>') {
+			if ((line + i + 1 != NULL) && (line[i + 1] != '>')) {
+				insert_blank(line, i);
+				insert_blank(line, i + 2);
+				i++;
+			}
+			if ((line + i + 1 != NULL) && (line[i + 1] == '>')) {
+				insert_blank(line, i);
+				insert_blank(line, i + 3);
+				i += 2;
+			}
+		}
+
+		i++;
+	}
+}
+
 void clear_buffer(char* line, char** argv)
 {
 	*line = '\0';
@@ -20,6 +57,8 @@ void clear_buffer(char* line, char** argv)
 int parse_cmd(char* line, char** argv)
 {
 	int position = 0;
+
+	arraw_sep(line);
 	char* arg;
 	if (!argv) {
 		fprintf(stderr, "lsh: allocation error\n");
@@ -179,6 +218,7 @@ int main()
 		getline(&line, &capacity, stdin);
 
 		parse_cmd(line, argv);
+		// parse_cmd1(line, argv);
 		if_esc = process_cmd(argv, line);
 
 		clear_buffer(line, argv);
