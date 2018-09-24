@@ -1,2 +1,6 @@
 mumsh
 *build-debug
+*.txt
+mumsh_memory_check
+Info.plist
+*.tar
