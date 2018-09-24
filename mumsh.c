@@ -62,12 +62,21 @@ int process_cmd(char** argv, char* line)
 			file_redirect_flag = 1;
 			re_r_pos = i;
 			argv[i] = NULL;
+			i++;
+			continue;
+		}
+		if (strcmp(argv[i], ">>") == 0) {
+			file_redirect_flag = 3;
+			re_r_pos = i;
+			argv[i] = NULL;
+			i++;
 			continue;
 		}
 		if (strcmp(argv[i], "<") == 0) {
 			file_redirect_flag = 2;
 			re_l_pos = i;
 			argv[i] = NULL;
+			i++;
 			continue;
 		}
 		i++;
@@ -83,19 +92,21 @@ int process_cmd(char** argv, char* line)
 		// child
 		if (file_redirect_flag > 0) {
 			// file redirect happens
-			char* filename = argv[re_r_pos + 1];
-			// char* filename = "a.txt";
-			int outfile =
-			    open(filename, O_CREAT | O_WRONLY, S_IRWXU);
+			if (file_redirect_flag == 1) {
+				char* filename = argv[re_r_pos + 1];
+				int outfile =
+				    open(filename, O_CREAT | O_WRONLY, S_IRWXU);
 
-			if (dup2(outfile, STDOUT_FILENO) != STDOUT_FILENO) {
-				fprintf(stderr,
-					"Error: failed to redirect standard "
-					"output\n");
+				dup2(outfile, STDOUT_FILENO);
 			}
-			// execvp(*argv, argv);
-			// fprintf(stderr, "an error occurred in execvp\n");
-			// abort();
+			if (file_redirect_flag == 3) {
+				char* filename = argv[re_r_pos + 1];
+				int outfile = open(
+				    filename, O_CREAT | O_APPEND | O_WRONLY,
+				    S_IRWXU);
+
+				dup2(outfile, STDOUT_FILENO);
+			}
 		}
 
 		if (execvp(*argv, argv) < 0) {
