@@ -10,7 +10,7 @@
 #define MODE_WR 0666
 #define FLAG_READ O_RDONLY | O_CREAT
 #define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
-#define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
+#define FLAGS_WRITE O_WRONLY | O_CREAT
 
 void insert_blank(char* line, int pos)
 {
@@ -248,6 +248,8 @@ int main()
 
 	int if_esc = 0;
 
+	fflush(stdout);
+	fflush(stderr);
 	char* sh_name = "mumsh $ ";
 	printf("%s", sh_name);
 	fflush(stdout);
