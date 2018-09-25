@@ -14,8 +14,6 @@
 
 void insert_blank(char* line, int pos)
 {
-	int i = pos;
-
 	char temp[1024];
 	strcpy(temp, line + pos);
 	line[pos] = ' ';
@@ -89,7 +87,6 @@ int process_cmd(char** argv, char* line)
 	// size_t size = strlen(line_input);
 	fflush(stdout);
 	fflush(stderr);
-	int size = 1;
 	int i = 0;
 	if (argv[0] == NULL) {
 		return 0;
@@ -172,7 +169,8 @@ int process_cmd(char** argv, char* line)
 			if (file_redirect_flag == 3) {
 				char* filename = argv[re_r_pos + 1];
 				int outfile = open(
-				    filename, O_WRONLY | O_APPEND, MODE_WR);
+				    filename, O_WRONLY | O_APPEND | O_CREAT,
+				    MODE_WR);
 
 				dup2(outfile, STDOUT_FILENO);
 			}
@@ -200,9 +198,9 @@ int process_cmd(char** argv, char* line)
 				char* in_file_name = argv[re_l_pos + 1];
 				// int out_file =
 				//   open(out_file_name, FLAG_APPEND, MODE_WR);
-				int out_file =
-				    open(out_file_name, O_WRONLY | O_APPEND,
-					 MODE_WR);
+				int out_file = open(
+				    out_file_name,
+				    O_WRONLY | O_APPEND | O_CREAT, MODE_WR);
 				int in_file =
 				    open(in_file_name, FLAG_READ, MODE_WR);
 
@@ -238,7 +236,15 @@ int main()
 	char* line = malloc(sizeof(char) * bufsize);
 	// size_t len = 0;
 	size_t capacity = 1024;
-	char argv[64][1024];
+	// char argv[64][1024];
+
+	char** argv;
+
+	argv = malloc(64 * sizeof(char*));
+	for (int i = 0; i < 64; i++)
+		argv[i] = malloc((1024 + 1) *
+				 sizeof(char));  // yeah, I know sizeof(char) is
+						 // 1, but to make it clear...
 
 	int if_esc = 0;
 
