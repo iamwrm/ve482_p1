@@ -9,7 +9,7 @@
 
 #define MODE_WR 0666
 #define FLAG_READ O_RDONLY | O_CREAT
-#define FLAG_APPEND O_WRONLY | O_CREAT
+#define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
 #define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 
 void insert_blank(char* line, int pos)
@@ -168,9 +168,8 @@ int process_cmd(char** argv, char* line)
 			// '_+'
 			if (file_redirect_flag == 3) {
 				char* filename = argv[re_r_pos + 1];
-				int outfile = open(
-				    filename, O_WRONLY | O_APPEND | O_CREAT,
-				    MODE_WR);
+				int outfile =
+				    open(filename, FLAG_APPEND, MODE_WR);
 
 				dup2(outfile, STDOUT_FILENO);
 			}
@@ -182,6 +181,7 @@ int process_cmd(char** argv, char* line)
 
 				dup2(in_file, STDIN_FILENO);
 			}
+			// '<>'
 			if (file_redirect_flag == 4) {
 				char* out_file_name = argv[re_r_pos + 1];
 				char* in_file_name = argv[re_l_pos + 1];
@@ -193,14 +193,14 @@ int process_cmd(char** argv, char* line)
 				dup2(out_file, STDOUT_FILENO);
 				dup2(in_file, STDIN_FILENO);
 			}
+			// '<+'
 			if (file_redirect_flag == 5) {
 				char* out_file_name = argv[re_r_pos + 1];
 				char* in_file_name = argv[re_l_pos + 1];
 				// int out_file =
 				//   open(out_file_name, FLAG_APPEND, MODE_WR);
-				int out_file = open(
-				    out_file_name,
-				    O_WRONLY | O_APPEND | O_CREAT, MODE_WR);
+				int out_file =
+				    open(out_file_name, FLAG_APPEND, MODE_WR);
 				int in_file =
 				    open(in_file_name, FLAG_READ, MODE_WR);
 

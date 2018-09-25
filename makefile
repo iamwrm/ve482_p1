@@ -28,3 +28,5 @@ clean:
 tar:all
 	rm p1.tar
 	tar -cvzf p1.tar Makefile main.c
+tar_cmake:all
+	tar -cvzf p1cmake.tar CMakeLists.txt main.c
