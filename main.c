@@ -9,7 +9,7 @@
 
 #define MODE_WR 0666
 #define FLAG_READ O_RDONLY | O_CREAT
-#define FLAG_APPEND O_RDONLY | O_CREAT
+#define FLAG_APPEND O_WRONLY | O_CREAT
 #define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 
 void insert_blank(char* line, int pos)
