@@ -10,7 +10,7 @@
 #define MODE_WR 0666
 #define FLAG_READ O_RDONLY | O_CREAT
 #define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
-#define FLAGS_WRITE O_WRONLY | O_CREAT
+#define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 
 void insert_blank(char* line, int pos)
 {
@@ -235,14 +235,15 @@ int main()
 	int bufsize = 1024;
 	char* line = malloc(sizeof(char) * bufsize);
 	// size_t len = 0;
-	size_t capacity = 1024;
 	// char argv[64][1024];
 
 	char** argv;
 
-	argv = malloc(64 * sizeof(char*));
-	for (int i = 0; i < 64; i++)
-		argv[i] = malloc((1024 + 1) *
+	int arg_num = 128;
+	int arg_lengh = 1024;
+	argv = malloc(arg_num * sizeof(char*));
+	for (int i = 0; i < arg_num; i++)
+		argv[i] = malloc((arg_lengh + 1) *
 				 sizeof(char));  // yeah, I know sizeof(char) is
 						 // 1, but to make it clear...
 
@@ -255,6 +256,7 @@ int main()
 	fflush(stdout);
 	fflush(stderr);
 	//	while (1) {
+	size_t capacity = 1024;
 	while (getline(&line, &capacity, stdin)) {
 		// while (getline(&line, &capacity, stdin)) {
 		// fflush(stdout);
@@ -266,10 +268,11 @@ int main()
 		// parse_cmd1(line, argv);
 		if_esc = process_cmd(argv, line);
 
-		clear_buffer(line, argv);
+		// clear_buffer(line, argv);
 
 		printf("%s", sh_name);
 		fflush(stdout);
+		fflush(stderr);
 		if (if_esc) {
 			break;
 		}
