@@ -79,13 +79,11 @@ int parse_cmd(char* line, char** argv)
 	}
 	argv[position] = NULL;
 
-	/*
-	int new_position= 0;
-	while (argv[new_position]!=NULL){
-		printf("%s\n",argv[new_position]);
+	int new_position = 0;
+	while (argv[new_position] != NULL) {
+		// printf("%s\n", argv[new_position]);
 		new_position++;
 	}
-	*/
 
 	return 0;
 }
@@ -113,6 +111,9 @@ int process_cmd(char** argv, char* line)
 	int re_l_pos = 0;
 	int re_r_pos = 0;
 
+	char* temp_in_file_name = malloc(1024 * sizeof(char));
+	char* temp_out_file_name = malloc(1024 * sizeof(char));
+
 	i = 0;
 	while (argv[i] != NULL) {
 		if (strcmp(argv[i], ">") == 0) {
@@ -122,7 +123,9 @@ int process_cmd(char** argv, char* line)
 				file_redirect_flag = 1;
 			}
 			re_r_pos = i;
-			argv[i] = NULL;
+			strcpy(temp_out_file_name, argv[i + 1]);
+			*(argv[i]) = ' ';
+			*(argv[i + 1]) = ' ';
 			i++;
 			continue;
 		}
@@ -133,7 +136,9 @@ int process_cmd(char** argv, char* line)
 				file_redirect_flag = 3;
 			}
 			re_r_pos = i;
-			argv[i] = NULL;
+			strcpy(temp_out_file_name, argv[i + 1]);
+			*(argv[i]) = ' ';
+			*(argv[i + 1]) = ' ';
 			i++;
 			continue;
 		}
@@ -147,13 +152,47 @@ int process_cmd(char** argv, char* line)
 				file_redirect_flag = 2;
 			}
 			re_l_pos = i;
-			argv[i] = NULL;
+			strcpy(temp_in_file_name, argv[i + 1]);
+			*(argv[i]) = ' ';
+			*(argv[i + 1]) = ' ';
 			i++;
 			continue;
 		}
 		i++;
 	}
 	// =================
+
+	char** temp_argv = malloc(64 * sizeof(char*));
+	int temp_argv_i = 0;
+
+	int new_position = 0;
+	while (argv[new_position] != NULL) {
+		if (*(argv[new_position]) == ' ') {
+			new_position++;
+			continue;
+		}
+		temp_argv[temp_argv_i] = argv[new_position];
+		temp_argv_i++;
+
+		new_position++;
+	}
+	temp_argv[temp_argv_i] = NULL;
+
+	new_position = 0;
+	while (temp_argv[new_position] != NULL) {
+		argv[new_position] = temp_argv[new_position];
+		new_position++;
+	}
+	argv[new_position] = NULL;
+
+	free(temp_argv);
+
+	new_position = 0;
+
+	while (argv[new_position] != NULL) {
+		// printf("%s\n", argv[new_position]);
+		new_position++;
+	}
 
 	pid_t pid;
 	int status;
@@ -168,55 +207,58 @@ int process_cmd(char** argv, char* line)
 			// file redirect happens
 			// '_>'
 			if (file_redirect_flag == 1) {
-				char* filename = argv[re_r_pos + 1];
-				int outfile =
-				    open(filename, FLAGS_WRITE, MODE_WR);
+				// char* filename = argv[re_r_pos + 1];
+				int outfile = open(temp_out_file_name,
+						   FLAGS_WRITE, MODE_WR);
 
 				dup2(outfile, STDOUT_FILENO);
 			}
 			// '_+'
 			if (file_redirect_flag == 3) {
-				char* filename = argv[re_r_pos + 1];
-				int outfile =
-				    open(filename, FLAG_APPEND, MODE_WR);
+				// char* filename = argv[re_r_pos + 1];
+				int outfile = open(temp_out_file_name,
+						   FLAG_APPEND, MODE_WR);
 
 				dup2(outfile, STDOUT_FILENO);
 			}
 			// '<_'
 			if (file_redirect_flag == 2) {
-				char* filename = argv[re_l_pos + 1];
+				// char* filename = argv[re_l_pos + 1];
 				int in_file =
-				    open(filename, FLAG_READ, MODE_WR);
+				    open(temp_in_file_name, FLAG_READ, MODE_WR);
 
 				dup2(in_file, STDIN_FILENO);
 			}
 			// '<>'
 			if (file_redirect_flag == 4) {
-				char* out_file_name = argv[re_r_pos + 1];
-				char* in_file_name = argv[re_l_pos + 1];
-				int out_file =
-				    open(out_file_name, FLAGS_WRITE, MODE_WR);
+				// char* out_file_name = argv[re_r_pos + 1];
+				// char* in_file_name = argv[re_l_pos + 1];
+				int out_file = open(temp_out_file_name,
+						    FLAGS_WRITE, MODE_WR);
 				int in_file =
-				    open(in_file_name, FLAG_READ, MODE_WR);
+				    open(temp_in_file_name, FLAG_READ, MODE_WR);
 
 				dup2(out_file, STDOUT_FILENO);
 				dup2(in_file, STDIN_FILENO);
 			}
 			// '<+'
 			if (file_redirect_flag == 5) {
-				char* out_file_name = argv[re_r_pos + 1];
-				char* in_file_name = argv[re_l_pos + 1];
+				// char* out_file_name = argv[re_r_pos + 1];
+				// char* in_file_name = argv[re_l_pos + 1];
 				// int out_file =
 				//   open(out_file_name, FLAG_APPEND, MODE_WR);
-				int out_file =
-				    open(out_file_name, FLAG_APPEND, MODE_WR);
+				int out_file = open(temp_out_file_name,
+						    FLAG_APPEND, MODE_WR);
 				int in_file =
-				    open(in_file_name, FLAG_READ, MODE_WR);
+				    open(temp_in_file_name, FLAG_READ, MODE_WR);
 
 				dup2(out_file, STDOUT_FILENO);
 				dup2(in_file, STDIN_FILENO);
 			}
 		}
+
+		free(temp_in_file_name);
+		free(temp_out_file_name);
 
 		fflush(stdout);
 		fflush(stderr);
