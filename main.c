@@ -78,6 +78,15 @@ int parse_cmd(char* line, char** argv)
 		arg = strtok(NULL, sep_er);
 	}
 	argv[position] = NULL;
+
+	/*
+	int new_position= 0;
+	while (argv[new_position]!=NULL){
+		printf("%s\n",argv[new_position]);
+		new_position++;
+	}
+	*/
+
 	return 0;
 }
 
