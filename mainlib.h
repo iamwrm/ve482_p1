@@ -12,6 +12,11 @@
 #define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
 #define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 
+struct Cmd_io_status {
+	int i_redirected;  // 0 -> stdin ; 1 -> file_in
+	int o_redirected;  // 0 -> stdout; 1 -> file_out; 2 -> file_out_append
+};
+
 
 void insert_blank(char* line, int pos);
 

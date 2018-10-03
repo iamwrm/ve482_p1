@@ -1,21 +1,7 @@
-#define _XOPEN_SOURCE 700
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
 #ifndef wr_head
 #define wr_head
 #include "mainlib.h"
 #endif
-
-#define MODE_WR 0666
-#define FLAG_READ O_RDONLY | O_CREAT
-#define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
-#define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 
 int parse_cmd(char* line, char** argv)
 {

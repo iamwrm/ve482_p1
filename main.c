@@ -1,29 +1,10 @@
-#define _XOPEN_SOURCE 700
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
-
 #ifndef wr_head
 #define wr_head
 #include "mainlib.h"
 #endif
 
-#define MODE_WR 0666
-#define FLAG_READ O_RDONLY | O_CREAT
-#define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
-#define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
-
-struct Cmd_io_status {
-	int i_redirected;  // 0 -> stdin ; 1 -> file_in
-	int o_redirected;  // 0 -> stdout; 1 -> file_out; 2 -> file_out_append
-};
-
 // return if_esc
-int process_cmd(char** argv, char* line)
+int process_cmd(char** argv)
 {
 	fflush(stdout);
 	fflush(stderr);
@@ -32,10 +13,9 @@ int process_cmd(char** argv, char* line)
 		return 0;
 	}
 	if (strcmp(argv[0], "exit") == 0) {
-		free(line);
 		printf("exit\n");
 		fflush(stdout);
-		exit(0);
+		return 1;
 	}
 
 	struct Cmd_io_status cmd_io_status;
@@ -111,9 +91,6 @@ int process_cmd(char** argv, char* line)
 
 	if (pid == 0) {
 		// child
-		fflush(stdout);
-		fflush(stderr);
-
 		if (cmd_io_status.o_redirected == 1) {
 			int outfile =
 			    open(temp_out_file_name, FLAGS_WRITE, MODE_WR);
@@ -133,9 +110,6 @@ int process_cmd(char** argv, char* line)
 			dup2(in_file, STDIN_FILENO);
 		}
 
-		free(temp_in_file_name);
-		free(temp_out_file_name);
-
 		int exe_return_value = execvp(*argv, argv);
 
 		if (exe_return_value < 0) {
@@ -147,6 +121,8 @@ int process_cmd(char** argv, char* line)
 		while (wait(&status) != pid) {
 		}
 	}
+	free(temp_in_file_name);
+	free(temp_out_file_name);
 	return 0;
 }
 
@@ -157,13 +133,17 @@ int main()
 	// size_t len = 0;
 	// char argv[64][1024];
 
-	char** argv;
-
 	int arg_num = 128;
-	int arg_lengh = 1024;
+	int arg_length = 1024;
+
+	char* arg = malloc(arg_num * (arg_length + 1) * sizeof(char));
+
+	char** argv;
 	argv = malloc(arg_num * sizeof(char*));
-	for (int i = 0; i < arg_num; i++)
-		argv[i] = malloc((arg_lengh + 1) * sizeof(char));
+
+	for (int i = 0; i < arg_num; i++) {
+		argv[i] = arg + i * (arg_length + 1) * sizeof(char);
+	}
 
 	int if_esc = 0;
 
@@ -176,18 +156,22 @@ int main()
 	while (getline(&line, &capacity, stdin)) {
 		parse_cmd(line, argv);
 
-		if_esc = process_cmd(argv, line);
+		if_esc = process_cmd(argv);
+		if (if_esc) {
+			break;
+		}
 
 		printf("%s", sh_name);
 
 		fflush(stdout);
 		fflush(stderr);
-
-		if (if_esc) {
-			break;
-		}
 	}
 
+	free(arg);
+
+	free(argv);
+
 	free(line);
+
 	return 0;
 }
