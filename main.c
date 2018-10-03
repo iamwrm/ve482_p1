@@ -12,86 +12,22 @@
 #define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
 #define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 
-void insert_blank(char* line, int pos)
-{
-	char temp[1024];
-	strcpy(temp, line + pos);
-	line[pos] = ' ';
-	strcpy(line + pos + 1, temp);
-}
+void insert_blank(char* line, int pos);
+void arraw_sep(char* line);
 
-void arraw_sep(char* line)
-{
-	int i = 0;
-	while (line[i] != '\0') {
-		if (line[i] == '<') {
-			insert_blank(line, i);
-			insert_blank(line, i + 2);
-			i++;
-			// insert_blank(line, i);
-		}
-		if (line[i] == '>') {
-			if ((line + i + 1 != NULL) && (line[i + 1] != '>')) {
-				insert_blank(line, i);
-				insert_blank(line, i + 2);
-				i++;
-			}
-			if ((line + i + 1 != NULL) && (line[i + 1] == '>')) {
-				insert_blank(line, i);
-				insert_blank(line, i + 3);
-				i += 2;
-			}
-		}
+// make line into * argv[]
+int parse_cmd(char* line, char** argv);
 
-		i++;
-	}
-}
+void clear_buffer(char* line, char** argv);
 
-void clear_buffer(char* line, char** argv)
-{
-	*line = '\0';
-	int position = 0;
-	while (argv[position] != NULL) {
-		argv[position] = NULL;
-		position++;
-	}
-}
-
-int parse_cmd(char* line, char** argv)
-{
-	int position = 0;
-
-	arraw_sep(line);
-	char* arg;
-	if (!argv) {
-		fprintf(stderr, "lsh: allocation error\n");
-		exit(EXIT_FAILURE);
-	}
-
-	char* sep_er = " \t\n";
-	// char* sep_er = " \t\r\n\a";
-	arg = strtok(line, sep_er);
-
-	while (arg != NULL) {
-		argv[position] = arg;
-		position++;
-		arg = strtok(NULL, sep_er);
-	}
-	argv[position] = NULL;
-
-	int new_position = 0;
-	while (argv[new_position] != NULL) {
-		// printf("%s\n", argv[new_position]);
-		new_position++;
-	}
-
-	return 0;
-}
+struct Cmd_io_status {
+	int i_redirected;  // 0 -> stdin ; 1 -> file_in
+	int o_redirected;  // 0 -> stdout; 1 -> file_out; 2 -> file_out_append
+};
 
 // return if_esc
 int process_cmd(char** argv, char* line)
 {
-	// size_t size = strlen(line_input);
 	fflush(stdout);
 	fflush(stderr);
 	int i = 0;
@@ -102,14 +38,13 @@ int process_cmd(char** argv, char* line)
 		free(line);
 		printf("exit\n");
 		fflush(stdout);
-		fflush(stderr);
 		exit(0);
 	}
 
-	// if redirect
-	int file_redirect_flag = 0;
-	int re_l_pos = 0;
-	int re_r_pos = 0;
+	struct Cmd_io_status cmd_io_status;
+
+	cmd_io_status.i_redirected = 0;
+	cmd_io_status.o_redirected = 0;
 
 	char* temp_in_file_name = malloc(1024 * sizeof(char));
 	char* temp_out_file_name = malloc(1024 * sizeof(char));
@@ -117,25 +52,17 @@ int process_cmd(char** argv, char* line)
 	i = 0;
 	while (argv[i] != NULL) {
 		if (strcmp(argv[i], ">") == 0) {
-			if (file_redirect_flag == 2) {
-				file_redirect_flag = 4;
-			} else {
-				file_redirect_flag = 1;
-			}
-			re_r_pos = i;
+			cmd_io_status.o_redirected = 1;
 			strcpy(temp_out_file_name, argv[i + 1]);
+
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
 			i++;
 			continue;
 		}
 		if (strcmp(argv[i], ">>") == 0) {
-			if (file_redirect_flag == 2) {
-				file_redirect_flag = 5;
-			} else {
-				file_redirect_flag = 3;
-			}
-			re_r_pos = i;
+			cmd_io_status.o_redirected = 2;
+
 			strcpy(temp_out_file_name, argv[i + 1]);
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
@@ -143,15 +70,8 @@ int process_cmd(char** argv, char* line)
 			continue;
 		}
 		if (strcmp(argv[i], "<") == 0) {
-			if (file_redirect_flag == 1) {
-				file_redirect_flag = 4;
+			cmd_io_status.i_redirected = 1;
 
-			} else if (file_redirect_flag == 3) {
-				file_redirect_flag = 5;
-			} else {
-				file_redirect_flag = 2;
-			}
-			re_l_pos = i;
 			strcpy(temp_in_file_name, argv[i + 1]);
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
@@ -187,12 +107,6 @@ int process_cmd(char** argv, char* line)
 
 	free(temp_argv);
 
-	new_position = 0;
-
-	while (argv[new_position] != NULL) {
-		// printf("%s\n", argv[new_position]);
-		new_position++;
-	}
 
 	pid_t pid;
 	int status;
@@ -203,73 +117,33 @@ int process_cmd(char** argv, char* line)
 		// child
 		fflush(stdout);
 		fflush(stderr);
-		if (file_redirect_flag > 0) {
-			// file redirect happens
-			// '_>'
-			if (file_redirect_flag == 1) {
-				// char* filename = argv[re_r_pos + 1];
-				int outfile = open(temp_out_file_name,
-						   FLAGS_WRITE, MODE_WR);
 
-				dup2(outfile, STDOUT_FILENO);
-			}
-			// '_+'
-			if (file_redirect_flag == 3) {
-				// char* filename = argv[re_r_pos + 1];
-				int outfile = open(temp_out_file_name,
-						   FLAG_APPEND, MODE_WR);
+		if (cmd_io_status.o_redirected == 1) {
+			int outfile =
+			    open(temp_out_file_name, FLAGS_WRITE, MODE_WR);
 
-				dup2(outfile, STDOUT_FILENO);
-			}
-			// '<_'
-			if (file_redirect_flag == 2) {
-				// char* filename = argv[re_l_pos + 1];
-				int in_file =
-				    open(temp_in_file_name, FLAG_READ, MODE_WR);
+			dup2(outfile, STDOUT_FILENO);
+		}
+		if (cmd_io_status.o_redirected == 2) {
+			int outfile =
+			    open(temp_out_file_name, FLAG_APPEND, MODE_WR);
 
-				dup2(in_file, STDIN_FILENO);
-			}
-			// '<>'
-			if (file_redirect_flag == 4) {
-				// char* out_file_name = argv[re_r_pos + 1];
-				// char* in_file_name = argv[re_l_pos + 1];
-				int out_file = open(temp_out_file_name,
-						    FLAGS_WRITE, MODE_WR);
-				int in_file =
-				    open(temp_in_file_name, FLAG_READ, MODE_WR);
+			dup2(outfile, STDOUT_FILENO);
+		}
+		if (cmd_io_status.i_redirected == 1) {
+			int in_file =
+			    open(temp_in_file_name, FLAG_READ, MODE_WR);
 
-				dup2(out_file, STDOUT_FILENO);
-				dup2(in_file, STDIN_FILENO);
-			}
-			// '<+'
-			if (file_redirect_flag == 5) {
-				// char* out_file_name = argv[re_r_pos + 1];
-				// char* in_file_name = argv[re_l_pos + 1];
-				// int out_file =
-				//   open(out_file_name, FLAG_APPEND, MODE_WR);
-				int out_file = open(temp_out_file_name,
-						    FLAG_APPEND, MODE_WR);
-				int in_file =
-				    open(temp_in_file_name, FLAG_READ, MODE_WR);
-
-				dup2(out_file, STDOUT_FILENO);
-				dup2(in_file, STDIN_FILENO);
-			}
+			dup2(in_file, STDIN_FILENO);
 		}
 
 		free(temp_in_file_name);
 		free(temp_out_file_name);
 
-		fflush(stdout);
-		fflush(stderr);
 		int exe_return_value = execvp(*argv, argv);
-		fflush(stderr);
-		fflush(stdout);
 
 		if (exe_return_value < 0) {
 			fprintf(stderr, "Error: no such file or directory\n");
-			fflush(stderr);
-			fflush(stdout);
 			exit(0);
 		}
 
@@ -277,7 +151,6 @@ int process_cmd(char** argv, char* line)
 		while (wait(&status) != pid) {
 		}
 	}
-	// =================
 	return 0;
 }
 
@@ -294,9 +167,7 @@ int main()
 	int arg_lengh = 1024;
 	argv = malloc(arg_num * sizeof(char*));
 	for (int i = 0; i < arg_num; i++)
-		argv[i] = malloc((arg_lengh + 1) *
-				 sizeof(char));  // yeah, I know sizeof(char) is
-						 // 1, but to make it clear...
+		argv[i] = malloc((arg_lengh + 1) * sizeof(char));
 
 	int if_esc = 0;
 
@@ -306,24 +177,18 @@ int main()
 	printf("%s", sh_name);
 	fflush(stdout);
 	fflush(stderr);
-	//	while (1) {
+
 	size_t capacity = 1024;
 	while (getline(&line, &capacity, stdin)) {
-		// while (getline(&line, &capacity, stdin)) {
-		// fflush(stdout);
-		// fflush(stderr);
-		// getline(&line, &capacity, stdin);
-		// if (fgets(line, capacity, stdin) == NULL) continue;
-
 		parse_cmd(line, argv);
-		// parse_cmd1(line, argv);
+
 		if_esc = process_cmd(argv, line);
 
-		// clear_buffer(line, argv);
-
 		printf("%s", sh_name);
+
 		fflush(stdout);
 		fflush(stderr);
+
 		if (if_esc) {
 			break;
 		}
@@ -331,4 +196,72 @@ int main()
 
 	free(line);
 	return 0;
+}
+
+void insert_blank(char* line, int pos)
+{
+	char temp[1024];
+	strcpy(temp, line + pos);
+	line[pos] = ' ';
+	strcpy(line + pos + 1, temp);
+}
+
+void arraw_sep(char* line)
+{
+	int i = 0;
+	while (line[i] != '\0') {
+		if (line[i] == '<') {
+			insert_blank(line, i);
+			insert_blank(line, i + 2);
+			i++;
+		}
+		if (line[i] == '>') {
+			if ((line + i + 1 != NULL) && (line[i + 1] != '>')) {
+				insert_blank(line, i);
+				insert_blank(line, i + 2);
+				i++;
+			}
+			if ((line + i + 1 != NULL) && (line[i + 1] == '>')) {
+				insert_blank(line, i);
+				insert_blank(line, i + 3);
+				i += 2;
+			}
+		}
+		i++;
+	}
+}
+
+int parse_cmd(char* line, char** argv)
+{
+	int position = 0;
+
+	arraw_sep(line);
+	char* arg;
+	if (!argv) {
+		fprintf(stderr, "lsh: allocation error\n");
+		exit(EXIT_FAILURE);
+	}
+
+	char* sep_er = " \t\n";
+	// char* sep_er = " \t\r\n\a";
+	arg = strtok(line, sep_er);
+
+	while (arg != NULL) {
+		argv[position] = arg;
+		position++;
+		arg = strtok(NULL, sep_er);
+	}
+	argv[position] = NULL;
+
+	return 0;
+}
+
+void clear_buffer(char* line, char** argv)
+{
+	*line = '\0';
+	int position = 0;
+	while (argv[position] != NULL) {
+		argv[position] = NULL;
+		position++;
+	}
 }
