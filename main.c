@@ -31,7 +31,6 @@ int process_cmd(char** argv)
 		if (strcmp(argv[i], ">") == 0) {
 			cmd_io_status.o_redirected = 1;
 			strcpy(temp_out_file_name, argv[i + 1]);
-
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
 			i++;
@@ -39,7 +38,6 @@ int process_cmd(char** argv)
 		}
 		if (strcmp(argv[i], ">>") == 0) {
 			cmd_io_status.o_redirected = 2;
-
 			strcpy(temp_out_file_name, argv[i + 1]);
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
@@ -48,7 +46,6 @@ int process_cmd(char** argv)
 		}
 		if (strcmp(argv[i], "<") == 0) {
 			cmd_io_status.i_redirected = 1;
-
 			strcpy(temp_in_file_name, argv[i + 1]);
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
@@ -57,8 +54,8 @@ int process_cmd(char** argv)
 		}
 		i++;
 	}
-	// =================
 
+	// begin part remove _ _ =================
 	char** temp_argv = malloc(64 * sizeof(char*));
 	int temp_argv_i = 0;
 
@@ -81,6 +78,8 @@ int process_cmd(char** argv)
 		new_position++;
 	}
 	argv[new_position] = NULL;
+
+	// end part remove _ _ =================
 
 	free(temp_argv);
 

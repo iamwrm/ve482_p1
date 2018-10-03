@@ -55,12 +55,19 @@ void arrow_sep(char* line)
 			insert_blank(line, i + 2);
 			i++;
 		}
+		if (line[i] == '|') {
+			insert_blank(line, i);
+			insert_blank(line, i + 2);
+			i++;
+		}
 		if (line[i] == '>') {
+			// case: a>b
 			if ((line + i + 1 != NULL) && (line[i + 1] != '>')) {
 				insert_blank(line, i);
 				insert_blank(line, i + 2);
 				i++;
 			}
+			// case: a>>b
 			if ((line + i + 1 != NULL) && (line[i + 1] == '>')) {
 				insert_blank(line, i);
 				insert_blank(line, i + 3);
