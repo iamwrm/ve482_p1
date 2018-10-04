@@ -145,3 +145,30 @@ int read_line(char* line_input, int line_length)
 	}
 }
 
+void remove_blank_in_argv(char** argv)
+{
+	char** temp_argv = malloc(64 * sizeof(char*));
+	int temp_argv_i = 0;
+
+	int new_position = 0;
+	while (argv[new_position] != NULL) {
+		if (*(argv[new_position]) == ' ') {
+			new_position++;
+			continue;
+		}
+		temp_argv[temp_argv_i] = argv[new_position];
+		temp_argv_i++;
+
+		new_position++;
+	}
+	temp_argv[temp_argv_i] = NULL;
+
+	new_position = 0;
+	while (temp_argv[new_position] != NULL) {
+		argv[new_position] = temp_argv[new_position];
+		new_position++;
+	}
+	argv[new_position] = NULL;
+	free(temp_argv);
+}
+

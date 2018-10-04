@@ -25,6 +25,8 @@ int read_line(char* line_input, int line_length);
 
 int first_pipe_position(char** argv);
 
+void remove_blank_in_argv(char** argv);
+
 void count_real_pipe(const char* line, struct Cmd_status* cmd_status);
 
 void insert_blank(char* line, int pos);

@@ -46,16 +46,12 @@ void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 {
 	int i = 0;
 	while (argv[i] != NULL) {
-		if (strcmp(argv[i], ">") == 0) {
-			cmd_io_status->o_redirected = 1;
-			strcpy(cmd_io_status->temp_out_file_name, argv[i + 1]);
-			*(argv[i]) = ' ';
-			*(argv[i + 1]) = ' ';
-			i++;
-			continue;
+		if (strcmp(argv[i], "|") == 0) {
+			break;
 		}
-		if (strcmp(argv[i], ">>") == 0) {
-			cmd_io_status->o_redirected = 2;
+		if ((strcmp(argv[i], ">") == 0) ||
+		    (strcmp(argv[i], ">>") == 0)) {
+			cmd_io_status->o_redirected = 1;
 			strcpy(cmd_io_status->temp_out_file_name, argv[i + 1]);
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
@@ -70,39 +66,9 @@ void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 			i++;
 			continue;
 		}
-		if (strcmp(argv[i], "|") == 0) {
-			break;
-		}
 		i++;
 	}
-
-	// begin part remove _ _ =================
-	char** temp_argv = malloc(64 * sizeof(char*));
-	int temp_argv_i = 0;
-
-	int new_position = 0;
-	while (argv[new_position] != NULL) {
-		if (*(argv[new_position]) == ' ') {
-			new_position++;
-			continue;
-		}
-		temp_argv[temp_argv_i] = argv[new_position];
-		temp_argv_i++;
-
-		new_position++;
-	}
-	temp_argv[temp_argv_i] = NULL;
-
-	new_position = 0;
-	while (temp_argv[new_position] != NULL) {
-		argv[new_position] = temp_argv[new_position];
-		new_position++;
-	}
-	argv[new_position] = NULL;
-
-	// end part remove _ _ =================
-
-	free(temp_argv);
+	remove_blank_in_argv(argv);
 }
 
 // return if_esc
@@ -133,11 +99,8 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 			argv = argv + fpp + 1;
 			cmd_io_status->pipe_number--;
 			continue;
-		}  // if (cmd_io_status->pipe_number > 0) {
-		if (cmd_io_status->pipe_number == 0) {
+		} else {
 			dup_and_exc(cmd_io_status, pid, argv, status);
-		}
-		if (cmd_io_status->pipe_number == 0) {
 			break;
 		}
 	}  // while (1)
@@ -151,20 +114,14 @@ int main()
 
 	int arg_num = 128;
 	int arg_length = 1024;
-
 	char* arg = malloc(arg_num * (arg_length + 1) * sizeof(char));
-
 	char** argv;
 	argv = malloc(arg_num * sizeof(char*));
-
 	for (int i = 0; i < arg_num; i++) {
 		argv[i] = arg + i * (arg_length + 1) * sizeof(char);
 	}
 
-	int if_esc = 0;
-
 	char* sh_name = "mumsh $ ";
-
 	if (isatty(fileno(stdin))) {
 		printf("%s", sh_name);
 		fflush(stdout);
@@ -172,16 +129,13 @@ int main()
 	}
 
 	struct Cmd_status cmd_io_status;
-
 	cmd_io_status.temp_in_file_name = malloc(1024 * sizeof(char));
 	cmd_io_status.temp_out_file_name = malloc(1024 * sizeof(char));
 
 	while (read_line(line, bufsize)) {
 		parse_cmd(line, argv, &cmd_io_status);
 
-		if_esc = process_cmd(argv, &cmd_io_status);
-
-		if (if_esc) {
+		if (process_cmd(argv, &cmd_io_status)) {
 			break;
 		}
 
