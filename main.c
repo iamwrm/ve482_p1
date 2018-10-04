@@ -42,18 +42,6 @@ void dup_and_exc(struct Cmd_status* cmd_io_status, pid_t pid, char** argv,
 	}
 }
 
-int first_pipe_position(char** argv)
-{
-	int i = 0;
-	while (argv[i] != NULL) {
-		if (strcmp(argv[i], "|") == 0) {
-			return i;
-		}
-		i++;
-	}
-	return -1;
-}
-
 void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 {
 	int i = 0;

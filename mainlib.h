@@ -23,13 +23,15 @@ struct Cmd_status {
 };
 int read_line(char* line_input, int line_length);
 
-void count_real_pipe(const char* line, struct Cmd_status * cmd_status);
+int first_pipe_position(char** argv);
+
+void count_real_pipe(const char* line, struct Cmd_status* cmd_status);
 
 void insert_blank(char* line, int pos);
 
 void arrow_sep(char* line);
 
 // make line into * argv[]
-int parse_cmd(char* line, char** argv, struct Cmd_status *);
+int parse_cmd(char* line, char** argv, struct Cmd_status*);
 
 void clear_buffer(char* line, char** argv);
