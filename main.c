@@ -4,10 +4,29 @@
 #endif
 
 void dup_and_exc(struct Cmd_status* cmd_io_status, pid_t pid, char** argv,
-		 int status)
+		 int status, int* pipefd)
 {
 	if (pid == 0) {
 		// child
+		if ((cmd_io_status->init_pipe_number > 0) &&
+		    (cmd_io_status->init_pipe_number ==
+		     cmd_io_status->pipe_number)) {
+			dup2(pipefd[1], STDOUT_FILENO);
+			close(pipefd[0]);
+		}
+		if ((cmd_io_status->init_pipe_number > 0) &&
+		    (cmd_io_status->init_pipe_number >
+		     cmd_io_status->pipe_number) &&
+		    (cmd_io_status->pipe_number > 0)) {
+			dup2(pipefd[1], STDOUT_FILENO);
+			dup2(pipefd[0], STDIN_FILENO);
+		}
+		if ((cmd_io_status->init_pipe_number > 0) &&
+		    (0 == cmd_io_status->pipe_number)) {
+			dup2(pipefd[0], STDIN_FILENO);
+			close(pipefd[1]);
+		}
+
 		if (cmd_io_status->o_redirected == 1) {
 			int outfile = open(cmd_io_status->temp_out_file_name,
 					   FLAGS_WRITE, MODE_WR);
@@ -74,6 +93,9 @@ void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 // return if_esc
 int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 {
+	int pipefd[2];
+	pipe(pipefd);
+
 	while (1) {
 		if (argv[0] == NULL) {
 			return 0;
@@ -95,12 +117,12 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 		if (cmd_io_status->pipe_number > 0) {
 			int fpp = first_pipe_position(argv);
 			argv[fpp] = NULL;
-			dup_and_exc(cmd_io_status, pid, argv, status);
+			dup_and_exc(cmd_io_status, pid, argv, status, pipefd);
 			argv = argv + fpp + 1;
 			cmd_io_status->pipe_number--;
 			continue;
 		} else {
-			dup_and_exc(cmd_io_status, pid, argv, status);
+			dup_and_exc(cmd_io_status, pid, argv, status, pipefd);
 			break;
 		}
 	}  // while (1)

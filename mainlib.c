@@ -85,6 +85,7 @@ void count_real_pipe(const char* line, struct Cmd_status* cmd_status)
 		}
 	}
 	cmd_status->pipe_number = pipe_count;
+	cmd_status->init_pipe_number = pipe_count;
 	return;
 }
 

@@ -18,6 +18,7 @@ struct Cmd_status {
 	int i_redirected;  // 0 -> stdin ; 1 -> file_in
 	int o_redirected;  // 0 -> stdout; 1 -> file_out; 2 -> file_out_append
 	int pipe_number;
+	int init_pipe_number;
 	char* temp_in_file_name;
 	char* temp_out_file_name;
 };
