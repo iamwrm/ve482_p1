@@ -13,14 +13,28 @@ int read_line(char* line_input, int line_length)
 		if ((c == EOF) && (position == 0)) {
 			return 0;
 		}
+		if ((isatty(fileno(stdin))) && (c == EOF) && (position > 0)) {
+			continue;
+		}
 
+		// FIXED: by isatty()
+		// 1. ./mumsh < task.sh
+		// there are mumsh $ mumsh $mumsh $mumsh $ and exit
+		// ================
 		if (c == EOF || c == '\n') {
+			// if (c == '\n') {
 			line_input[position] = '\0';
 			return 1;
-		} else {
-			line_input[position] = c;
 		}
+
+		// FIXED: echo ctrl-d ctrl-d will print ctrl-d
+		// if (c == EOF) {
+		// continue;
+		//}
+
+		line_input[position] = c;
 		position++;
+		assert(position < line_length);
 	}
 }
 
@@ -34,8 +48,6 @@ int process_cmd(char** argv)
 		return 0;
 	}
 	if (strcmp(argv[0], "exit") == 0) {
-		printf("exit\n");
-		fflush(stdout);
 		return 1;
 	}
 
@@ -168,9 +180,12 @@ int main()
 	int if_esc = 0;
 
 	char* sh_name = "mumsh $ ";
-	printf("%s", sh_name);
-	fflush(stdout);
-	fflush(stderr);
+
+	if (isatty(fileno(stdin))) {
+		printf("%s", sh_name);
+		fflush(stdout);
+		fflush(stderr);
+	}
 
 	// size_t capacity = 1024;
 	// while (getline(&line, &capacity, stdin)) {
@@ -182,12 +197,18 @@ int main()
 			break;
 		}
 
-		printf("%s", sh_name);
+		if (isatty(fileno(stdin))) {
+			printf("%s", sh_name);
+			fflush(stdout);
+			fflush(stderr);
+		}
+	}
 
+	if (isatty(fileno(stdin))) {
+		printf("exit\n");
 		fflush(stdout);
 		fflush(stderr);
 	}
-
 	free(arg);
 
 	free(argv);
