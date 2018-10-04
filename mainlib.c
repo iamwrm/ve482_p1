@@ -3,14 +3,68 @@
 #include "mainlib.h"
 #endif
 
-int parse_cmd(char* line, char** argv)
+int read_line(char* line_input, int line_length)
+{
+	int position = 0;
+	int c;
+	while (1) {
+		c = getchar();
+
+		if ((c == EOF) && (position == 0)) {
+			return 0;
+		}
+		if ((isatty(fileno(stdin))) && (c == EOF) && (position > 0)) {
+			continue;
+		}
+
+		// FIXED: by isatty()
+		// 1. ./mumsh < task.sh
+		// there are mumsh $ mumsh $mumsh $mumsh $ and exit
+		// ================
+		if (c == EOF || c == '\n') {
+			// if (c == '\n') {
+			line_input[position] = '\0';
+			return 1;
+		}
+
+		// FIXED: echo ctrl-d ctrl-d will print ctrl-d
+		// if (c == EOF) {
+		// continue;
+		//}
+
+		line_input[position] = c;
+		position++;
+		assert(position < line_length);
+	}
+}
+
+void count_real_pipe(const char* line, struct Cmd_status* cmd_status)
+{
+	int pipe_count = 0;
+	// TODO: provide support for quotes
+	int i = 0;
+	while (*(line + i++) != '\0') {
+		if (line[i] == '|') {
+			pipe_count++;
+		}
+	}
+	cmd_status->pipe_number = pipe_count;
+	return;
+}
+
+int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 {
 	int position = 0;
 
 	arrow_sep(line);
+
+	count_real_pipe(line, cmd_io_status);
+
+
 	char* arg;
+
 	if (!argv) {
-		fprintf(stderr, "lsh: allocation error\n");
+		fprintf(stderr, "allocation error\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -36,14 +90,6 @@ void clear_buffer(char* line, char** argv)
 		argv[position] = NULL;
 		position++;
 	}
-}
-
-void insert_blank(char* line, int pos)
-{
-	char temp[1024];
-	strcpy(temp, line + pos);
-	line[pos] = ' ';
-	strcpy(line + pos + 1, temp);
 }
 
 void arrow_sep(char* line)
@@ -76,4 +122,12 @@ void arrow_sep(char* line)
 		}
 		i++;
 	}
+}
+
+void insert_blank(char* line, int pos)
+{
+	char temp[1024];
+	strcpy(temp, line + pos);
+	line[pos] = ' ';
+	strcpy(line + pos + 1, temp);
 }

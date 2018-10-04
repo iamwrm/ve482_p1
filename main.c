@@ -3,87 +3,48 @@
 #include "mainlib.h"
 #endif
 
-int read_line(char* line_input, int line_length)
+int first_pipe_position(char** argv)
 {
-	int position = 0;
-	int c;
-	while (1) {
-		c = getchar();
-
-		if ((c == EOF) && (position == 0)) {
-			return 0;
+	int i = 0;
+	while (argv[i] != NULL) {
+		if (strcmp(argv[i], "|") == 0) {
+			return i;
 		}
-		if ((isatty(fileno(stdin))) && (c == EOF) && (position > 0)) {
-			continue;
-		}
-
-		// FIXED: by isatty()
-		// 1. ./mumsh < task.sh
-		// there are mumsh $ mumsh $mumsh $mumsh $ and exit
-		// ================
-		if (c == EOF || c == '\n') {
-			// if (c == '\n') {
-			line_input[position] = '\0';
-			return 1;
-		}
-
-		// FIXED: echo ctrl-d ctrl-d will print ctrl-d
-		// if (c == EOF) {
-		// continue;
-		//}
-
-		line_input[position] = c;
-		position++;
-		assert(position < line_length);
+		i++;
 	}
+	return -1;
 }
 
-// return if_esc
-int process_cmd(char** argv)
+void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 {
-	fflush(stdout);
-	fflush(stderr);
 	int i = 0;
-	if (argv[0] == NULL) {
-		return 0;
-	}
-	if (strcmp(argv[0], "exit") == 0) {
-		return 1;
-	}
-
-	struct Cmd_io_status cmd_io_status;
-
-	cmd_io_status.i_redirected = 0;
-	cmd_io_status.o_redirected = 0;
-
-	char* temp_in_file_name = malloc(1024 * sizeof(char));
-	char* temp_out_file_name = malloc(1024 * sizeof(char));
-
-	i = 0;
 	while (argv[i] != NULL) {
 		if (strcmp(argv[i], ">") == 0) {
-			cmd_io_status.o_redirected = 1;
-			strcpy(temp_out_file_name, argv[i + 1]);
+			cmd_io_status->o_redirected = 1;
+			strcpy(cmd_io_status->temp_out_file_name, argv[i + 1]);
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
 			i++;
 			continue;
 		}
 		if (strcmp(argv[i], ">>") == 0) {
-			cmd_io_status.o_redirected = 2;
-			strcpy(temp_out_file_name, argv[i + 1]);
+			cmd_io_status->o_redirected = 2;
+			strcpy(cmd_io_status->temp_out_file_name, argv[i + 1]);
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
 			i++;
 			continue;
 		}
 		if (strcmp(argv[i], "<") == 0) {
-			cmd_io_status.i_redirected = 1;
-			strcpy(temp_in_file_name, argv[i + 1]);
+			cmd_io_status->i_redirected = 1;
+			strcpy(cmd_io_status->temp_in_file_name, argv[i + 1]);
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
 			i++;
 			continue;
+		}
+		if (strcmp(argv[i], "|") == 0) {
+			break;
 		}
 		i++;
 	}
@@ -115,46 +76,119 @@ int process_cmd(char** argv)
 	// end part remove _ _ =================
 
 	free(temp_argv);
+}
 
-	pid_t pid;
-	int status;
-
-	pid = fork();
-
-	if (pid == 0) {
-		// child
-		if (cmd_io_status.o_redirected == 1) {
-			int outfile =
-			    open(temp_out_file_name, FLAGS_WRITE, MODE_WR);
-
-			dup2(outfile, STDOUT_FILENO);
+// return if_esc
+int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
+{
+	while (1) {
+		if (argv[0] == NULL) {
+			return 0;
 		}
-		if (cmd_io_status.o_redirected == 2) {
-			int outfile =
-			    open(temp_out_file_name, FLAG_APPEND, MODE_WR);
-
-			dup2(outfile, STDOUT_FILENO);
-		}
-		if (cmd_io_status.i_redirected == 1) {
-			int in_file =
-			    open(temp_in_file_name, FLAG_READ, MODE_WR);
-
-			dup2(in_file, STDIN_FILENO);
+		if (strcmp(argv[0], "exit") == 0) {
+			return 1;
 		}
 
-		int exe_return_value = execvp(*argv, argv);
+		cmd_io_status->i_redirected = 0;
+		cmd_io_status->o_redirected = 0;
 
-		if (exe_return_value < 0) {
-			fprintf(stderr, "Error: no such file or directory\n");
-			exit(0);
-		}
+		char* temp_in_file_name = malloc(1024 * sizeof(char));
+		char* temp_out_file_name = malloc(1024 * sizeof(char));
 
-	} else {  // parent
-		while (wait(&status) != pid) {
+		find_redirect_symbols(argv, cmd_io_status);
+
+		pid_t pid;
+		int status;
+
+		pid = fork();
+
+		if (cmd_io_status->pipe_number > 0) {
+			int fpp = first_pipe_position(argv);
+			argv[fpp] = NULL;
+			if (pid == 0) {
+				// child
+				if (cmd_io_status->o_redirected == 1) {
+					int outfile =
+					    open(temp_out_file_name,
+						 FLAGS_WRITE, MODE_WR);
+
+					dup2(outfile, STDOUT_FILENO);
+				}
+				if (cmd_io_status->o_redirected == 2) {
+					int outfile =
+					    open(temp_out_file_name,
+						 FLAG_APPEND, MODE_WR);
+
+					dup2(outfile, STDOUT_FILENO);
+				}
+				if (cmd_io_status->i_redirected == 1) {
+					int in_file = open(temp_in_file_name,
+							   FLAG_READ, MODE_WR);
+
+					dup2(in_file, STDIN_FILENO);
+				}
+
+				int exe_return_value = execvp(*argv, argv);
+
+				if (exe_return_value < 0) {
+					fprintf(stderr,
+						"Error: no such file or "
+						"directory\n");
+					exit(0);
+				}
+
+			} else {  // parent
+				while (wait(&status) != pid) {
+				}
+			}
+			argv = argv + fpp + 1;
+			cmd_io_status->pipe_number--;
+			continue;
+		}  // if (cmd_io_status->pipe_number > 0) {
+		if (cmd_io_status->pipe_number == 0) {
+			if (pid == 0) {
+				// child
+				if (cmd_io_status->o_redirected == 1) {
+					int outfile =
+					    open(temp_out_file_name,
+						 FLAGS_WRITE, MODE_WR);
+
+					dup2(outfile, STDOUT_FILENO);
+				}
+				if (cmd_io_status->o_redirected == 2) {
+					int outfile =
+					    open(temp_out_file_name,
+						 FLAG_APPEND, MODE_WR);
+
+					dup2(outfile, STDOUT_FILENO);
+				}
+				if (cmd_io_status->i_redirected == 1) {
+					int in_file = open(temp_in_file_name,
+							   FLAG_READ, MODE_WR);
+
+					dup2(in_file, STDIN_FILENO);
+				}
+
+				int exe_return_value = execvp(*argv, argv);
+
+				if (exe_return_value < 0) {
+					fprintf(stderr,
+						"Error: no such file or "
+						"directory\n");
+					exit(0);
+				}
+
+			} else {  // parent
+				while (wait(&status) != pid) {
+				}
+			}
 		}
-	}
-	free(temp_in_file_name);
-	free(temp_out_file_name);
+		free(temp_in_file_name);
+		free(temp_out_file_name);
+		if (cmd_io_status->pipe_number == 0) {
+			break;
+		}
+	}  // while (1)
 	return 0;
 }
 
@@ -162,8 +196,6 @@ int main()
 {
 	int bufsize = 1024;
 	char* line = malloc(sizeof(char) * bufsize);
-	// size_t len = 0;
-	// char argv[64][1024];
 
 	int arg_num = 128;
 	int arg_length = 1024;
@@ -187,12 +219,13 @@ int main()
 		fflush(stderr);
 	}
 
-	// size_t capacity = 1024;
-	// while (getline(&line, &capacity, stdin)) {
-	while (read_line(line, bufsize)) {
-		parse_cmd(line, argv);
+	struct Cmd_status cmd_io_status;
 
-		if_esc = process_cmd(argv);
+	while (read_line(line, bufsize)) {
+		parse_cmd(line, argv, &cmd_io_status);
+
+		if_esc = process_cmd(argv, &cmd_io_status);
+
 		if (if_esc) {
 			break;
 		}
@@ -209,10 +242,9 @@ int main()
 		fflush(stdout);
 		fflush(stderr);
 	}
+
 	free(arg);
-
 	free(argv);
-
 	free(line);
 
 	return 0;
