@@ -3,6 +3,27 @@
 #include "mainlib.h"
 #endif
 
+int read_line(char* line_input, int line_length)
+{
+	int position = 0;
+	int c;
+	while (1) {
+		c = getchar();
+
+		if ((c == EOF) && (position == 0)) {
+			return 0;
+		}
+
+		if (c == EOF || c == '\n') {
+			line_input[position] = '\0';
+			return 1;
+		} else {
+			line_input[position] = c;
+		}
+		position++;
+	}
+}
+
 // return if_esc
 int process_cmd(char** argv)
 {
@@ -151,8 +172,9 @@ int main()
 	fflush(stdout);
 	fflush(stderr);
 
-	size_t capacity = 1024;
-	while (getline(&line, &capacity, stdin)) {
+	// size_t capacity = 1024;
+	// while (getline(&line, &capacity, stdin)) {
+	while (read_line(line, bufsize)) {
 		parse_cmd(line, argv);
 
 		if_esc = process_cmd(argv);
