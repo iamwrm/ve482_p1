@@ -3,6 +3,10 @@
 #include "mainlib.h"
 #endif
 
+// BEFORE: echo 123 > 1.txt
+// AFTER : echo 123
+// cmd_io_status->o_redirected are modified
+// cmd_io_status->i_redirected are modified
 void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 {
 	int i = 0;

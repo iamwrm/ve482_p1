@@ -42,94 +42,67 @@ void pipe_command(char** cmd1, char** cmd2)
 	} else {
 		wait(NULL);
 	}
+	return;
 }
 
+void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
+{
+	cmd_io_status->i_redirected = 0;
+	cmd_io_status->o_redirected = 0;
 
-void dup_and_exc(struct Cmd_status* cmd_io_status, pid_t* pid, char** argv,
-		 int status, int* pipefd)
+	find_redirect_symbols(argv, cmd_io_status);
+
+	if (cmd_io_status->o_redirected == 1) {
+		int outfile = open(cmd_io_status->temp_out_file_name,
+				   FLAGS_WRITE, MODE_WR);
+
+		dup2(outfile, STDOUT_FILENO);
+	}
+	if (cmd_io_status->o_redirected == 2) {
+		int outfile = open(cmd_io_status->temp_out_file_name,
+				   FLAG_APPEND, MODE_WR);
+
+		dup2(outfile, STDOUT_FILENO);
+	}
+	if (cmd_io_status->i_redirected == 1) {
+		int in_file =
+		    open(cmd_io_status->temp_in_file_name, FLAG_READ, MODE_WR);
+
+		dup2(in_file, STDIN_FILENO);
+	}
+}
+
+void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 {
 	pid_t pid_d;
 	int status_d = 0;
 
 	pid_d = fork();
 	if (pid_d == 0) {
-		// child
-		if ((cmd_io_status->init_pipe_number > 0) &&
-		    (cmd_io_status->init_pipe_number ==
-		     cmd_io_status->pipe_number)) {
-			dup2(pipefd[1], STDOUT_FILENO);
-			close(pipefd[0]);
-		}
-		if ((cmd_io_status->init_pipe_number > 0) &&
-		    (cmd_io_status->init_pipe_number >
-		     cmd_io_status->pipe_number) &&
-		    (cmd_io_status->pipe_number > 0)) {
-			dup2(pipefd[1], STDOUT_FILENO);
-			dup2(pipefd[0], STDIN_FILENO);
-		}
-		if ((cmd_io_status->init_pipe_number > 0) &&
-		    (0 == cmd_io_status->pipe_number)) {
-			dup2(pipefd[0], STDIN_FILENO);
-			close(pipefd[1]);
-		}
+		set_redirect_status(cmd_io_status, argv);
 
-		if (cmd_io_status->o_redirected == 1) {
-			int outfile = open(cmd_io_status->temp_out_file_name,
-					   FLAGS_WRITE, MODE_WR);
-
-			dup2(outfile, STDOUT_FILENO);
-		}
-		if (cmd_io_status->o_redirected == 2) {
-			int outfile = open(cmd_io_status->temp_out_file_name,
-					   FLAG_APPEND, MODE_WR);
-
-			dup2(outfile, STDOUT_FILENO);
-		}
-		if (cmd_io_status->i_redirected == 1) {
-			int in_file = open(cmd_io_status->temp_in_file_name,
-					   FLAG_READ, MODE_WR);
-
-			dup2(in_file, STDIN_FILENO);
-		}
-
-		int exe_return_value = execvp(*argv, argv);
-
-		if (exe_return_value < 0) {
+		if (execvp(*argv, argv)) {
 			fprintf(stderr,
 				"Error: no such file or "
 				"directory\n");
 			exit(0);
 		}
-		close(pipefd[0]);
-		close(pipefd[1]);
 		return;
 
 	} else {  // parent
-		wait(&status) != pid_d;
+		wait(NULL);
 	}
 }
 
 // return if_esc
 int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 {
-	int pipefd[2];
-	pipe(pipefd);
-
-	// while (1) {
 	if (argv[0] == NULL) {
 		return 0;
 	}
 	if (strcmp(argv[0], "exit") == 0) {
 		return 1;
 	}
-
-	cmd_io_status->i_redirected = 0;
-	cmd_io_status->o_redirected = 0;
-
-	find_redirect_symbols(argv, cmd_io_status);
-
-	pid_t pid;
-	int status = 0;
 
 	if (cmd_io_status->pipe_number > 0) {
 		int fpp = first_pipe_position(argv);
@@ -144,10 +117,9 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 
 		// continue;
 	} else {
-		dup_and_exc(cmd_io_status, &pid, argv, status, pipefd);
+		dup_and_exc(cmd_io_status, argv);
 		// break;
 	}
-	//	}  // while (1)
 	return 0;
 }
 
