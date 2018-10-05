@@ -22,6 +22,7 @@ struct Cmd_status {
 	char* temp_in_file_name;
 	char* temp_out_file_name;
 };
+void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv);
 
 void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status);
 

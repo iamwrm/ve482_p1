@@ -3,7 +3,7 @@
 #include "mainlib.h"
 #endif
 
-void pipe_command(char** cmd1, char** cmd2)
+void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status)
 {
 	printf("pipecommand\n");
 
@@ -19,6 +19,7 @@ void pipe_command(char** cmd1, char** cmd2)
 
 		// former cmd
 		if (pid == 0) {
+			set_redirect_status(cmd_io_status, cmd1);
 			dup2(fds[1], 1);
 			close(fds[0]);
 			if (execvp(cmd1[0], cmd1)) {
@@ -29,6 +30,7 @@ void pipe_command(char** cmd1, char** cmd2)
 			}
 		} else {
 			// later cmd
+			set_redirect_status(cmd_io_status, cmd2);
 			wait(NULL);
 			dup2(fds[0], 0);
 			close(fds[1]);
@@ -113,7 +115,7 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 		cmd_io_status->pipe_number--;
 		dup_and_exc(cmd_io_status, &pid, argv, status, pipefd);
 		*/
-		pipe_command(argv, argv + fpp + 1);
+		pipe_command(argv, argv + fpp + 1, cmd_io_status);
 
 		// continue;
 	} else {
