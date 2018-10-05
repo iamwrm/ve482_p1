@@ -3,69 +3,47 @@
 #include "mainlib.h"
 #endif
 
-void dup_and_exc_2(struct Cmd_status* cmd_io_status, pid_t* pid, char** argv,
-		   int status, int* pipefd)
+void pipe_command(char** cmd1, char** cmd2)
 {
-	pid_t pid_d;
-	int status_d = 0;
+	printf("pipecommand\n");
 
-	pid_d = fork();
-	if (pid_d == 0) {
-		// child
-		if ((cmd_io_status->init_pipe_number > 0) &&
-		    (cmd_io_status->init_pipe_number ==
-		     cmd_io_status->pipe_number)) {
-			dup2(pipefd[1], STDOUT_FILENO);
-			close(pipefd[0]);
+	pid_t pid_0;
+	pid_0 = fork();
+
+	if (pid_0 == 0) {
+		int fds[2];  // file descriptors
+		pipe(fds);
+		pid_t pid;
+
+		pid = fork();
+
+		// former cmd
+		if (pid == 0) {
+			dup2(fds[1], 1);
+			close(fds[0]);
+			if (execvp(cmd1[0], cmd1)) {
+				fprintf(stderr,
+					"Error: no such file or "
+					"directory\n");
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			// later cmd
+			wait(NULL);
+			dup2(fds[0], 0);
+			close(fds[1]);
+			if (execvp(cmd2[0], cmd2)) {
+				fprintf(stderr,
+					"Error: no such file or "
+					"directory\n");
+				exit(EXIT_FAILURE);
+			}
 		}
-		if ((cmd_io_status->init_pipe_number > 0) &&
-		    (cmd_io_status->init_pipe_number >
-		     cmd_io_status->pipe_number) &&
-		    (cmd_io_status->pipe_number > 0)) {
-			dup2(pipefd[1], STDOUT_FILENO);
-			dup2(pipefd[0], STDIN_FILENO);
-		}
-		if ((cmd_io_status->init_pipe_number > 0) &&
-		    (0 == cmd_io_status->pipe_number)) {
-			dup2(pipefd[0], STDIN_FILENO);
-			close(pipefd[1]);
-		}
-
-		if (cmd_io_status->o_redirected == 1) {
-			int outfile = open(cmd_io_status->temp_out_file_name,
-					   FLAGS_WRITE, MODE_WR);
-
-			dup2(outfile, STDOUT_FILENO);
-		}
-		if (cmd_io_status->o_redirected == 2) {
-			int outfile = open(cmd_io_status->temp_out_file_name,
-					   FLAG_APPEND, MODE_WR);
-
-			dup2(outfile, STDOUT_FILENO);
-		}
-		if (cmd_io_status->i_redirected == 1) {
-			int in_file = open(cmd_io_status->temp_in_file_name,
-					   FLAG_READ, MODE_WR);
-
-			dup2(in_file, STDIN_FILENO);
-		}
-
-		int exe_return_value = execvp(*argv, argv);
-
-		if (exe_return_value < 0) {
-			fprintf(stderr,
-				"Error: no such file or "
-				"directory\n");
-			exit(0);
-		}
-		close(pipefd[0]);
-		close(pipefd[1]);
-		return;
-
-	} else {  // parent
-		wait(&status) != pid_d;
+	} else {
+		wait(NULL);
 	}
 }
+
 
 void dup_and_exc(struct Cmd_status* cmd_io_status, pid_t* pid, char** argv,
 		 int status, int* pipefd)
@@ -156,10 +134,14 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 	if (cmd_io_status->pipe_number > 0) {
 		int fpp = first_pipe_position(argv);
 		argv[fpp] = NULL;
+		/*
 		dup_and_exc(cmd_io_status, &pid, argv, status, pipefd);
 		argv = argv + fpp + 1;
 		cmd_io_status->pipe_number--;
 		dup_and_exc(cmd_io_status, &pid, argv, status, pipefd);
+		*/
+		pipe_command(argv, argv + fpp + 1);
+
 		// continue;
 	} else {
 		dup_and_exc(cmd_io_status, &pid, argv, status, pipefd);
