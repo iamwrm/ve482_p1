@@ -10,9 +10,16 @@ void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 		if (strcmp(argv[i], "|") == 0) {
 			break;
 		}
-		if ((strcmp(argv[i], ">") == 0) ||
-		    (strcmp(argv[i], ">>") == 0)) {
+		if (strcmp(argv[i], ">") == 0) {
 			cmd_io_status->o_redirected = 1;
+			strcpy(cmd_io_status->temp_out_file_name, argv[i + 1]);
+			*(argv[i]) = ' ';
+			*(argv[i + 1]) = ' ';
+			i++;
+			continue;
+		}
+		if (strcmp(argv[i], ">>") == 0) {
+			cmd_io_status->o_redirected = 2;
 			strcpy(cmd_io_status->temp_out_file_name, argv[i + 1]);
 			*(argv[i]) = ' ';
 			*(argv[i + 1]) = ' ';
@@ -40,7 +47,6 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 
 	count_real_pipe(line, cmd_io_status);
 
-
 	char* arg;
 
 	if (!argv) {
@@ -61,7 +67,6 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 
 	return 0;
 }
-
 
 void arrow_sep(char* line)
 {
@@ -201,4 +206,3 @@ void remove_blank_in_argv(char** argv)
 	argv[new_position] = NULL;
 	free(temp_argv);
 }
-

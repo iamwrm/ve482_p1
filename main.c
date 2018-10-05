@@ -184,11 +184,9 @@ int main()
 	}
 
 	char* sh_name = "mumsh $ ";
-	if (isatty(fileno(stdin))) {
-		printf("%s", sh_name);
-		fflush(stdout);
-		fflush(stderr);
-	}
+	printf("%s", sh_name);
+	fflush(stdout);
+	fflush(stderr);
 
 	struct Cmd_status cmd_io_status;
 	cmd_io_status.temp_in_file_name = malloc(1024 * sizeof(char));
@@ -200,19 +198,14 @@ int main()
 		if (process_cmd(argv, &cmd_io_status)) {
 			break;
 		}
-
-		//if (isatty(fileno(stdin))) {
-			printf("%s", sh_name);
-			fflush(stdout);
-			fflush(stderr);
-		//}
-	}
-
-	//if (isatty(fileno(stdin))) {
-		printf("exit\n");
+		printf("%s", sh_name);
 		fflush(stdout);
 		fflush(stderr);
-	//}
+	}
+
+	printf("exit\n");
+	fflush(stdout);
+	fflush(stderr);
 
 	free(cmd_io_status.temp_in_file_name);
 	free(cmd_io_status.temp_out_file_name);
