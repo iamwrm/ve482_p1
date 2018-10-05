@@ -3,6 +3,35 @@
 #include "mainlib.h"
 #endif
 
+void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
+{
+	int i = 0;
+	while (argv[i] != NULL) {
+		if (strcmp(argv[i], "|") == 0) {
+			break;
+		}
+		if ((strcmp(argv[i], ">") == 0) ||
+		    (strcmp(argv[i], ">>") == 0)) {
+			cmd_io_status->o_redirected = 1;
+			strcpy(cmd_io_status->temp_out_file_name, argv[i + 1]);
+			*(argv[i]) = ' ';
+			*(argv[i + 1]) = ' ';
+			i++;
+			continue;
+		}
+		if (strcmp(argv[i], "<") == 0) {
+			cmd_io_status->i_redirected = 1;
+			strcpy(cmd_io_status->temp_in_file_name, argv[i + 1]);
+			*(argv[i]) = ' ';
+			*(argv[i + 1]) = ' ';
+			i++;
+			continue;
+		}
+		i++;
+	}
+	remove_blank_in_argv(argv);
+}
+
 int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 {
 	int position = 0;

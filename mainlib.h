@@ -22,6 +22,9 @@ struct Cmd_status {
 	char* temp_in_file_name;
 	char* temp_out_file_name;
 };
+
+void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status);
+
 int read_line(char* line_input, int line_length);
 
 int first_pipe_position(char** argv);
