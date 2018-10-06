@@ -3,10 +3,13 @@
 #include "mainlib.h"
 #endif
 
+int my_execvp(char* cmdhead, char** cmd)
+{
+	return execvp(cmdhead, cmd);
+}
+
 void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status)
 {
-	printf("pipecommand\n");
-
 	pid_t pid_0;
 	pid_0 = fork();
 
@@ -22,7 +25,7 @@ void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status)
 			set_redirect_status(cmd_io_status, cmd1);
 			dup2(fds[1], 1);
 			close(fds[0]);
-			if (execvp(cmd1[0], cmd1)) {
+			if (my_execvp(cmd1[0], cmd1)) {
 				fprintf(stderr,
 					"Error: no such file or "
 					"directory\n");
@@ -34,7 +37,7 @@ void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status)
 			wait(NULL);
 			dup2(fds[0], 0);
 			close(fds[1]);
-			if (execvp(cmd2[0], cmd2)) {
+			if (my_execvp(cmd2[0], cmd2)) {
 				fprintf(stderr,
 					"Error: no such file or "
 					"directory\n");
@@ -83,7 +86,7 @@ void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 	if (pid_d == 0) {
 		set_redirect_status(cmd_io_status, argv);
 
-		if (execvp(*argv, argv)) {
+		if (my_execvp(*argv, argv)) {
 			fprintf(stderr,
 				"Error: no such file or "
 				"directory\n");
