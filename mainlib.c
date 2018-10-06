@@ -70,7 +70,7 @@ int find_the_nth_pipe(char** argv, int n)
 }
 
 void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
-		 int depth, int** input_p)
+		 int depth, int* input_p)
 {
 	if (depth == init_depth) {
 		int fileds_1[2];  // file descriptors
@@ -239,8 +239,6 @@ void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status)
 void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 {
 	pid_t pid_d;
-	int status_d = 0;
-
 	pid_d = fork();
 	if (pid_d == 0) {
 		set_redirect_status(cmd_io_status, argv);

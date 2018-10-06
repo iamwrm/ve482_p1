@@ -15,11 +15,15 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 	}
 
 	if (cmd_io_status->pipe_number > 0) {
-		int fpp = first_pipe_position(argv);
-		argv[fpp] = NULL;
-		pipe_command(argv, argv + fpp + 1, cmd_io_status);
-		// pipe_command_3(argv, cmd_io_status);
+		// int fpp = first_pipe_position(argv);
+		// argv[fpp] = NULL;
+		// pipe_command(argv, argv + fpp + 1, cmd_io_status);
+		pipe_command_3(argv, cmd_io_status);
 		//	     cmd_io_status);
+		// pipe_helper(argv, cmd_io_status,
+		//    cmd_io_status->init_pipe_number,
+		//   cmd_io_status->init_pipe_number, NULL);
+		// new_pipe_cmd(argv, cmd_io_status);
 	} else if (cmd_io_status->pipe_number > 3) {
 		pipe_helper(argv, cmd_io_status,
 			    cmd_io_status->init_pipe_number,
