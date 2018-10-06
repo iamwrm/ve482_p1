@@ -50,7 +50,6 @@ void pipe_command_3(char** argv, struct Cmd_status* cmd_io_status)
 				}
 			} else {
 				set_redirect_status(cmd_io_status, cmd2);
-				wait(NULL);
 
 				dup2(fds_1[0], 0);
 				close(fds_1[1]);
@@ -67,7 +66,6 @@ void pipe_command_3(char** argv, struct Cmd_status* cmd_io_status)
 		} else {
 			// later cmd
 			set_redirect_status(cmd_io_status, cmd3);
-			wait(NULL);
 			dup2(fds[0], 0);
 			close(fds[1]);
 			if (my_execvp(cmd2[0], cmd2)) {
@@ -109,7 +107,6 @@ void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status)
 		} else {
 			// later cmd
 			set_redirect_status(cmd_io_status, cmd2);
-			wait(NULL);
 			dup2(fds[0], 0);
 			close(fds[1]);
 			if (my_execvp(cmd2[0], cmd2)) {
