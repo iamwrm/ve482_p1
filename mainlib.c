@@ -5,6 +5,27 @@
 
 int my_execvp(char* cmdhead, char** cmd)
 {
+	if (strcmp(cmd[0], "cd") == 0) {
+		if (chdir(cmd[1]) != 0) {
+			printf(
+			    "mumsh: cd: %s: No such file or "
+			    "directory\n",
+			    cmd[1]);
+			return 1;
+		}
+		fflush(stdin);
+		fflush(stdout);
+		return 0;
+	}
+	if (strcmp(cmd[0], "pwd") == 0) {
+		char buf[1024];
+		getcwd(buf, sizeof(buf));
+		printf("%s\n", buf);
+		fflush(stdin);
+		fflush(stdout);
+		return 0;
+	}
+
 	return execvp(cmdhead, cmd);
 }
 
@@ -12,11 +33,11 @@ int my_execvp(char* cmdhead, char** cmd)
 void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 	     int* fds)
 {
-	set_redirect_status(cmd_io_status, cmd2);
 	dup2(fds_1[0], 0);
 	close(fds_1[1]);
 	dup2(fds[1], 1);
 	close(fds[0]);
+	set_redirect_status(cmd_io_status, cmd2);
 	if (my_execvp(cmd2[0], cmd2)) {
 		fprintf(stderr,
 			"Error: no such file or "
@@ -28,9 +49,9 @@ void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 // fds_1-> output
 void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
 {
-	set_redirect_status(cmd_io_status, cmd1);
 	dup2(fds_1[1], 1);
 	close(fds_1[0]);
+	set_redirect_status(cmd_io_status, cmd1);
 	if (my_execvp(cmd1[0], cmd1)) {
 		fprintf(stderr,
 			"Error: no such file or "
@@ -42,9 +63,9 @@ void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
 // fds-> input
 void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds)
 {
-	set_redirect_status(cmd_io_status, cmd3);
 	dup2(fds[0], 0);
 	close(fds[1]);
+	set_redirect_status(cmd_io_status, cmd3);
 	if (my_execvp(cmd3[0], cmd3)) {
 		fprintf(stderr,
 			"Error: no such file or "
