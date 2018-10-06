@@ -8,6 +8,7 @@ int my_execvp(char* cmdhead, char** cmd)
 	return execvp(cmdhead, cmd);
 }
 
+// fds_1-> input , fds-> output
 void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 	     int* fds)
 {
@@ -24,6 +25,7 @@ void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 	}
 }
 
+// fds_1-> output
 void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
 {
 	set_redirect_status(cmd_io_status, cmd1);
@@ -37,6 +39,7 @@ void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
 	}
 }
 
+// fds-> input
 void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds)
 {
 	set_redirect_status(cmd_io_status, cmd3);
@@ -47,6 +50,84 @@ void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds)
 			"Error: no such file or "
 			"directory\n");
 		exit(EXIT_FAILURE);
+	}
+}
+
+int find_the_nth_pipe(char** argv, int n)
+{
+	int i = 0;
+	int j = 0;
+	while (argv[i] != NULL) {
+		if (strcmp(argv[i], "|") == 0) {
+			j++;
+		}
+		if (j == n) {
+			return i;
+		}
+		i++;
+	}
+	return -1;
+}
+
+void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
+		 int depth, int** input_p)
+{
+	if (depth == init_depth) {
+		int fileds_1[2];  // file descriptors
+		pipe(fileds_1);
+		pid_t pid_2;
+
+		pid_2 = fork();
+		if (pid_2 == 0) {
+			// cmd1
+			pipe_helper(argv, cmd_io_status, init_depth, depth - 1,
+				    fileds_1);
+		} else {
+			// cmd2
+			// TODO: make shure argv points right place
+			int deviation = find_the_nth_pipe(argv, depth);
+			cmd_tail(cmd_io_status, argv + deviation + 1, fileds_1);
+			return;
+		}
+	}
+
+	if (depth > 1) {
+		int fileds_1[2];  // file descriptors
+		pipe(fileds_1);
+		pid_t pid_2;
+
+		pid_2 = fork();
+		if (pid_2 == 0) {
+			// cmd1
+			pipe_helper(argv, cmd_io_status, init_depth, depth - 1,
+				    fileds_1);
+
+		} else {
+			// cmd2
+			int deviation = find_the_nth_pipe(argv, depth);
+			argv[find_the_nth_pipe(argv, depth + 1)] = NULL;
+			cmd_mid(cmd_io_status, argv + deviation + 1, fileds_1,
+				input_p);
+		}
+	}
+
+	if (depth == 1) {
+		int fds_1[2];  // file descriptors
+		pipe(fds_1);
+		pid_t pid_2;
+
+		pid_2 = fork();
+		if (pid_2 == 0) {
+			// cmd1
+			argv[find_the_nth_pipe(argv, depth)] = NULL;
+			cmd_head(cmd_io_status, argv, fds_1);
+		} else {
+			// cmd2
+			argv[find_the_nth_pipe(argv, depth + 1)] = NULL;
+			cmd_mid(cmd_io_status,
+				argv + find_the_nth_pipe(argv, 1) + 1, fds_1,
+				input_p);
+		}
 	}
 }
 
@@ -61,6 +142,10 @@ void pipe_command_3(char** argv, struct Cmd_status* cmd_io_status)
 	int i2 = first_pipe_position(cmd2);
 	char** cmd3 = cmd2 + i2 + 1;
 	cmd2[i2] = NULL;
+
+	int i3 = first_pipe_position(cmd3);
+	char** cmd4 = cmd3 + i3 + 1;
+	cmd3[i3] = NULL;
 
 	pid_t pid_0;
 	pid_0 = fork();
@@ -81,7 +166,19 @@ void pipe_command_3(char** argv, struct Cmd_status* cmd_io_status)
 			pid_2 = fork();
 			if (pid_2 == 0) {
 				// cmd1
-				cmd_head(cmd_io_status, cmd1, fds_1);
+
+				int fds_2[2];  // file descriptors
+				pipe(fds_2);
+				pid_t pid_3;
+
+				pid_3 = fork();
+				if (pid_3 == 0) {
+					cmd_head(cmd_io_status, cmd1, fds_2);
+				} else {
+					cmd_mid(cmd_io_status, cmd2, fds_2,
+						fds_1);
+				}
+
 			} else {
 				// cmd2
 				cmd_mid(cmd_io_status, cmd2, fds_1, fds);
@@ -174,8 +271,10 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 		// argv[fpp] = NULL;
 		// pipe_command(argv, argv + fpp + 1, cmd_io_status);
 		pipe_command_3(argv, cmd_io_status);
-
-		// continue;
+	} else if (cmd_io_status->pipe_number > 2) {
+		pipe_helper(argv, cmd_io_status,
+			    cmd_io_status->init_pipe_number,
+			    cmd_io_status->init_pipe_number, NULL);
 	} else {
 		dup_and_exc(cmd_io_status, argv);
 		// break;
