@@ -8,6 +8,48 @@ int my_execvp(char* cmdhead, char** cmd)
 	return execvp(cmdhead, cmd);
 }
 
+void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
+	     int* fds)
+{
+	set_redirect_status(cmd_io_status, cmd2);
+	dup2(fds_1[0], 0);
+	close(fds_1[1]);
+	dup2(fds[1], 1);
+	close(fds[0]);
+	if (my_execvp(cmd2[0], cmd2)) {
+		fprintf(stderr,
+			"Error: no such file or "
+			"directory\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
+{
+	set_redirect_status(cmd_io_status, cmd1);
+	dup2(fds_1[1], 1);
+	close(fds_1[0]);
+	if (my_execvp(cmd1[0], cmd1)) {
+		fprintf(stderr,
+			"Error: no such file or "
+			"directory\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
+void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds)
+{
+	set_redirect_status(cmd_io_status, cmd3);
+	dup2(fds[0], 0);
+	close(fds[1]);
+	if (my_execvp(cmd3[0], cmd3)) {
+		fprintf(stderr,
+			"Error: no such file or "
+			"directory\n");
+		exit(EXIT_FAILURE);
+	}
+}
+
 void pipe_command_3(char** argv, struct Cmd_status* cmd_io_status)
 {
 	char** cmd1 = argv;
@@ -39,41 +81,14 @@ void pipe_command_3(char** argv, struct Cmd_status* cmd_io_status)
 			pid_2 = fork();
 			if (pid_2 == 0) {
 				// cmd1
-				set_redirect_status(cmd_io_status, cmd1);
-				dup2(fds_1[1], 1);
-				close(fds_1[0]);
-				if (my_execvp(cmd1[0], cmd1)) {
-					fprintf(stderr,
-						"Error: no such file or "
-						"directory\n");
-					exit(EXIT_FAILURE);
-				}
+				cmd_head(cmd_io_status, cmd1, fds_1);
 			} else {
-				set_redirect_status(cmd_io_status, cmd2);
-
-				dup2(fds_1[0], 0);
-				close(fds_1[1]);
-
-				dup2(fds[1], 1);
-				close(fds[0]);
-				if (my_execvp(cmd2[0], cmd2)) {
-					fprintf(stderr,
-						"Error: no such file or "
-						"directory\n");
-					exit(EXIT_FAILURE);
-				}
+				// cmd2
+				cmd_mid(cmd_io_status, cmd2, fds_1, fds);
 			}
 		} else {
-			// later cmd
-			set_redirect_status(cmd_io_status, cmd3);
-			dup2(fds[0], 0);
-			close(fds[1]);
-			if (my_execvp(cmd2[0], cmd2)) {
-				fprintf(stderr,
-					"Error: no such file or "
-					"directory\n");
-				exit(EXIT_FAILURE);
-			}
+			// cmd3
+			cmd_tail(cmd_io_status, cmd3, fds);
 		}
 	} else {
 		wait(NULL);
