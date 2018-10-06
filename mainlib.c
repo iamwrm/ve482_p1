@@ -3,6 +3,33 @@
 #include "mainlib.h"
 #endif
 
+void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
+{
+	cmd_io_status->i_redirected = 0;
+	cmd_io_status->o_redirected = 0;
+
+	find_redirect_symbols(argv, cmd_io_status);
+
+	if (cmd_io_status->o_redirected == 1) {
+		int outfile = open(cmd_io_status->temp_out_file_name,
+				   FLAGS_WRITE, MODE_WR);
+
+		dup2(outfile, STDOUT_FILENO);
+	}
+	if (cmd_io_status->o_redirected == 2) {
+		int outfile = open(cmd_io_status->temp_out_file_name,
+				   FLAG_APPEND, MODE_WR);
+
+		dup2(outfile, STDOUT_FILENO);
+	}
+	if (cmd_io_status->i_redirected == 1) {
+		int in_file =
+		    open(cmd_io_status->temp_in_file_name, FLAG_READ, MODE_WR);
+
+		dup2(in_file, STDIN_FILENO);
+	}
+}
+
 // BEFORE: echo 123 > 1.txt
 // AFTER : echo 123
 // cmd_io_status->o_redirected are modified

@@ -50,32 +50,6 @@ void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status)
 	return;
 }
 
-void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
-{
-	cmd_io_status->i_redirected = 0;
-	cmd_io_status->o_redirected = 0;
-
-	find_redirect_symbols(argv, cmd_io_status);
-
-	if (cmd_io_status->o_redirected == 1) {
-		int outfile = open(cmd_io_status->temp_out_file_name,
-				   FLAGS_WRITE, MODE_WR);
-
-		dup2(outfile, STDOUT_FILENO);
-	}
-	if (cmd_io_status->o_redirected == 2) {
-		int outfile = open(cmd_io_status->temp_out_file_name,
-				   FLAG_APPEND, MODE_WR);
-
-		dup2(outfile, STDOUT_FILENO);
-	}
-	if (cmd_io_status->i_redirected == 1) {
-		int in_file =
-		    open(cmd_io_status->temp_in_file_name, FLAG_READ, MODE_WR);
-
-		dup2(in_file, STDIN_FILENO);
-	}
-}
 
 void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 {
