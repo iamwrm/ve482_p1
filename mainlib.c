@@ -15,6 +15,7 @@ int my_execvp(char* cmdhead, char** cmd)
 		}
 		fflush(stdin);
 		fflush(stdout);
+		exit(0);
 		return 0;
 	}
 	if (strcmp(cmd[0], "pwd") == 0) {
@@ -23,6 +24,7 @@ int my_execvp(char* cmdhead, char** cmd)
 		printf("%s\n", buf);
 		fflush(stdin);
 		fflush(stdout);
+		exit(0);
 		return 0;
 	}
 
