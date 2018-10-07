@@ -250,9 +250,8 @@ void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 {
 	pid_t pid_d;
 	pid_d = fork();
-	signal(SIGINT, psig_handler);
+	signal(SIGINT, process_sig_handler);
 	if (pid_d == 0) {
-		signal(SIGINT, SIG_DFL);
 		set_redirect_status(cmd_io_status, argv);
 
 		if (my_execvp(*argv, argv)) {
@@ -264,8 +263,8 @@ void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 		return;
 
 	} else {  // parent
-		wait(NULL);
 	}
+	wait(NULL);
 }
 
 void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
@@ -443,6 +442,7 @@ void clear_buffer(char* line, char** argv)
 
 int read_line(char* line_input, int line_length)
 {
+	signal(SIGINT, sig_handler);
 	int position = 0;
 	int c;
 	while (1) {
@@ -451,7 +451,8 @@ int read_line(char* line_input, int line_length)
 		if ((c == EOF) && (position == 0)) {
 			return 0;
 		}
-		if ((isatty(fileno(stdin))) && (c == EOF) && (position > 0)) {
+
+		if ((c == EOF) && (position > 0)) {
 			continue;
 		}
 

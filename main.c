@@ -6,18 +6,17 @@
 void sig_handler(int sig)
 {
 	if (sig == SIGINT) {
-		printf("\n");
-		printf("mumsh $ ");
+		printf("\nmumsh $ ");
 		fflush(stdout);
 		signal(SIGINT, sig_handler);
 	}
 }
 
-void psig_handler(int sig)
+void process_sig_handler(int sig)
 {
 	if (sig == SIGINT) {
 		printf("\n");
-		signal(SIGINT, psig_handler);
+		signal(SIGINT, process_sig_handler);
 	}
 }
 
@@ -92,7 +91,6 @@ int main()
 
 	while (read_line(line, bufsize)) {
 		// signal(SIGINT, sig_handler);
-		signal(SIGINT, sig_handler);
 		parse_cmd(line, argv, &cmd_io_status);
 
 		if (process_cmd(argv, &cmd_io_status)) {

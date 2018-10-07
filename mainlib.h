@@ -25,7 +25,7 @@ struct Cmd_status {
 };
 
 void sig_handler(int);
-void psig_handler(int);
+void process_sig_handler(int);
 
 int my_execvp(char* cmdhead, char** cmd);
 
