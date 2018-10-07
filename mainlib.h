@@ -14,6 +14,7 @@
 #define FLAG_READ O_RDONLY | O_CREAT
 #define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
 #define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
+#define BUFF_SIZE 1024
 
 struct Cmd_status {
 	int i_redirected;  // 0 -> stdin ; 1 -> file_in
@@ -50,7 +51,7 @@ void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv);
 
 void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status);
 
-int read_line(char* line_input, int line_length);
+int read_line(char* line_input );
 
 int first_pipe_position(char** argv);
 

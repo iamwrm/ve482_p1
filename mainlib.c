@@ -87,7 +87,6 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 		pipe(fileds_1);
 		pid_t pid_2;
 
-
 		pid_2 = fork();
 		if (pid_2 == 0) {
 			// cmd1
@@ -119,6 +118,7 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 			argv[find_the_nth_pipe(argv, depth + 1)] = NULL;
 			cmd_mid(cmd_io_status, argv + deviation + 1, fileds_1,
 				input_p);
+			return;
 		}
 	}
 
@@ -137,8 +137,10 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 			cmd_mid(cmd_io_status,
 				argv + find_the_nth_pipe(argv, 1) + 1, fds_1,
 				input_p);
+			return;
 		}
 	}
+	return;
 }
 
 void pipe_command_3(char** argv, struct Cmd_status* cmd_io_status)
@@ -440,9 +442,9 @@ void clear_buffer(char* line, char** argv)
 	}
 }
 
-int read_line(char* line_input, int line_length)
+int read_line(char* line_input)
 {
-	if (fgets(line_input, 1024, stdin) == NULL) {
+	if (fgets(line_input, BUFF_SIZE, stdin) == NULL) {
 		if (feof(stdin)) {
 			printf("exit\n");
 			fflush(stdout);

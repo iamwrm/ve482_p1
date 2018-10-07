@@ -60,7 +60,6 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 
 int main()
 {
-	int bufsize = 1024;
 	char line[1024];
 
 	//	signal(SIGINT, SIG_IGN);
@@ -85,7 +84,7 @@ int main()
 		printf("%s", sh_name);
 		fflush(stdout);
 		fflush(stderr);
-		if (read_line(line, bufsize)) {
+		if (read_line(line)) {
 			continue;
 		}
 		parse_cmd(line, argv, &cmd_io_status);
