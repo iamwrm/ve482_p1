@@ -5,19 +5,6 @@
 
 int my_execvp(char* cmdhead, char** cmd)
 {
-	if (strcmp(cmd[0], "cd") == 0) {
-		if (chdir(cmd[1]) != 0) {
-			printf(
-			    "mumsh: cd: %s: No such file or "
-			    "directory\n",
-			    cmd[1]);
-			return 1;
-		}
-		fflush(stdin);
-		fflush(stdout);
-		exit(0);
-		return 0;
-	}
 	if (strcmp(cmd[0], "pwd") == 0) {
 		char buf[1024];
 		getcwd(buf, sizeof(buf));
@@ -107,7 +94,7 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 				    fileds_1);
 		} else {
 			// cmd2
-			// TODO: make shure argv points right place
+			// TODO: make sure argv points right place
 			int deviation = find_the_nth_pipe(argv, depth);
 			cmd_tail(cmd_io_status, argv + deviation + 1, fileds_1);
 			return;
@@ -263,7 +250,9 @@ void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 {
 	pid_t pid_d;
 	pid_d = fork();
+	signal(SIGINT, psig_handler);
 	if (pid_d == 0) {
+		signal(SIGINT, SIG_DFL);
 		set_redirect_status(cmd_io_status, argv);
 
 		if (my_execvp(*argv, argv)) {

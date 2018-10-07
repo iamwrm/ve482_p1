@@ -3,6 +3,24 @@
 #include "mainlib.h"
 #endif
 
+void sig_handler(int sig)
+{
+	if (sig == SIGINT) {
+		printf("\n");
+		printf("mumsh $ ");
+		fflush(stdout);
+		signal(SIGINT, sig_handler);
+	}
+}
+
+void psig_handler(int sig)
+{
+	if (sig == SIGINT) {
+		printf("\n");
+		signal(SIGINT, psig_handler);
+	}
+}
+
 // return if_esc
 int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 {
@@ -12,6 +30,18 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 	if (strcmp(argv[0], "exit") == 0) {
 		return 1;
 	}
+	if (strcmp(argv[0], "cd") == 0) {
+		if (chdir(argv[1]) != 0) {
+			printf(
+			    "mumsh: cd: %s: No such file or "
+			    "directory\n",
+			    argv[1]);
+			return 0;
+		}
+		fflush(stdout);
+		return 0;
+	}
+	// signal(SIGINT, psig_handler);
 
 	if (cmd_io_status->pipe_number > 0) {
 		// int fpp = first_pipe_position(argv);
@@ -40,6 +70,8 @@ int main()
 	int bufsize = 1024;
 	char* line = malloc(sizeof(char) * bufsize);
 
+	//	signal(SIGINT, SIG_IGN);
+
 	int arg_num = 128;
 	int arg_length = 1024;
 	char* arg = malloc(arg_num * (arg_length + 1) * sizeof(char));
@@ -59,6 +91,8 @@ int main()
 	cmd_io_status.temp_out_file_name = malloc(1024 * sizeof(char));
 
 	while (read_line(line, bufsize)) {
+		// signal(SIGINT, sig_handler);
+		signal(SIGINT, sig_handler);
 		parse_cmd(line, argv, &cmd_io_status);
 
 		if (process_cmd(argv, &cmd_io_status)) {
