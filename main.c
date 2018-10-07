@@ -67,7 +67,7 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 int main()
 {
 	int bufsize = 1024;
-	char* line = malloc(sizeof(char) * bufsize);
+	char line[1024];
 
 	//	signal(SIGINT, SIG_IGN);
 
@@ -81,27 +81,27 @@ int main()
 	}
 
 	char* sh_name = "mumsh $ ";
-	printf("%s", sh_name);
-	fflush(stdout);
-	fflush(stderr);
 
 	struct Cmd_status cmd_io_status;
 	cmd_io_status.temp_in_file_name = malloc(1024 * sizeof(char));
 	cmd_io_status.temp_out_file_name = malloc(1024 * sizeof(char));
 
-	while (read_line(line, bufsize)) {
-		// signal(SIGINT, sig_handler);
+	while (1) {
+		signal(SIGINT, process_sig_handler);
+		printf("%s", sh_name);
+		fflush(stdout);
+		fflush(stderr);
+		if (read_line(line, bufsize)) {
+			continue;
+		}
 		parse_cmd(line, argv, &cmd_io_status);
 
 		if (process_cmd(argv, &cmd_io_status)) {
 			break;
 		}
-		printf("%s", sh_name);
-		fflush(stdout);
-		fflush(stderr);
 	}
 
-	printf("exit\n");
+	printf("exitout\n");
 	fflush(stdout);
 	fflush(stderr);
 
@@ -109,7 +109,6 @@ int main()
 	free(cmd_io_status.temp_out_file_name);
 	free(arg);
 	free(argv);
-	free(line);
 
 	return 0;
 }

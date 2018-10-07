@@ -442,39 +442,19 @@ void clear_buffer(char* line, char** argv)
 
 int read_line(char* line_input, int line_length)
 {
-	signal(SIGINT, sig_handler);
+	//signal(SIGINT, SIG_IGN);
 	int position = 0;
 	int c;
-	while (1) {
-		c = getchar();
 
-		if ((c == EOF) && (position == 0)) {
-			return 0;
-		}
-
-		if ((c == EOF) && (position > 0)) {
-			continue;
-		}
-
-		// FIXED: by isatty()
-		// 1. ./mumsh < task.sh
-		// there are mumsh $ mumsh $mumsh $mumsh $ and exit
-		// ================
-		if (c == EOF || c == '\n') {
-			// if (c == '\n') {
-			line_input[position] = '\0';
+	if (fgets(line_input, 1024, stdin) == NULL) {
+		if (feof(stdin)) {
+			printf("exit\n");
+			fflush(stdout);
+			exit(0);
+		} else
 			return 1;
-		}
-
-		// FIXED: echo ctrl-d ctrl-d will print ctrl-d
-		// if (c == EOF) {
-		// continue;
-		//}
-
-		line_input[position] = c;
-		position++;
-		assert(position < line_length);
 	}
+	return 0;
 }
 
 void remove_blank_in_argv(char** argv)
