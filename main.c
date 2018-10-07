@@ -3,14 +3,6 @@
 #include "mainlib.h"
 #endif
 
-void sig_handler(int sig)
-{
-	if (sig == SIGINT) {
-		printf("\nmumsh $ ");
-		fflush(stdout);
-		signal(SIGINT, sig_handler);
-	}
-}
 
 void process_sig_handler(int sig)
 {

@@ -86,6 +86,7 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 		int fileds_1[2];  // file descriptors
 		pipe(fileds_1);
 		pid_t pid_2;
+		
 
 		pid_2 = fork();
 		if (pid_2 == 0) {
@@ -263,8 +264,8 @@ void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 		return;
 
 	} else {  // parent
+		wait(NULL);
 	}
-	wait(NULL);
 }
 
 void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
@@ -442,10 +443,6 @@ void clear_buffer(char* line, char** argv)
 
 int read_line(char* line_input, int line_length)
 {
-	//signal(SIGINT, SIG_IGN);
-	int position = 0;
-	int c;
-
 	if (fgets(line_input, 1024, stdin) == NULL) {
 		if (feof(stdin)) {
 			printf("exit\n");
