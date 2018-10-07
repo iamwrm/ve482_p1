@@ -86,7 +86,7 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 		int fileds_1[2];  // file descriptors
 		pipe(fileds_1);
 		pid_t pid_2;
-		
+
 
 		pid_2 = fork();
 		if (pid_2 == 0) {
@@ -126,7 +126,6 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 		int fds_1[2];  // file descriptors
 		pipe(fds_1);
 		pid_t pid_2;
-
 		pid_2 = fork();
 		if (pid_2 == 0) {
 			// cmd1
