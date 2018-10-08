@@ -11,6 +11,23 @@ void process_sig_handler(int sig)
 	}
 }
 
+void iterate_pipe_helper(char** argv, struct Cmd_status* cmd_io_status)
+{
+	int pipe_num = cmd_io_status->pipe_number;
+
+	int* pipe_arg_position = malloc((pipe_num + 1) * sizeof(int));
+
+	for (int i = 0; i < pipe_num; i++) {
+		pipe_arg_position[i] = find_the_nth_pipe(argv, i + 1);
+		printf("%d ", pipe_arg_position[i]);
+	}
+	for (int i = 0; i < pipe_num; i++) {
+	}
+
+	free(pipe_arg_position);
+	return;
+}
+
 // return if_esc
 int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 {
@@ -36,21 +53,22 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 		pipe_helper(argv, cmd_io_status,
 			    cmd_io_status->init_pipe_number,
 			    cmd_io_status->init_pipe_number, NULL);
-	}
-
-	if (cmd_io_status->pipe_number > 0) {
+		/*
+		 */
+		// printf("branch i want");
+		// lyh_pipe_helper(argv, cmd_io_status);
+	} else if (cmd_io_status->pipe_number > 0) {
 		// int fpp = first_pipe_position(argv);
 		// argv[fpp] = NULL;
 		// pipe_command(argv, argv + fpp + 1, cmd_io_status);
-	pipe_command_3(argv, cmd_io_status);
-		//	     cmd_io_status);
+		pipe_command_3(argv, cmd_io_status);
+		// cmd_io_status);
+
 		// pipe_helper(argv, cmd_io_status,
 		//    cmd_io_status->init_pipe_number,
 		//   cmd_io_status->init_pipe_number, NULL);
 		// new_pipe_cmd(argv, cmd_io_status);
-	}
-
-	{
+	} else {
 		dup_and_exc(cmd_io_status, argv);
 		// break;
 	}
@@ -94,7 +112,7 @@ int main()
 		}
 	}
 
-	printf("exitout\n");
+	printf("exit\n");
 	fflush(stdout);
 	fflush(stderr);
 

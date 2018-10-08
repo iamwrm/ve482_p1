@@ -25,6 +25,7 @@ struct Cmd_status {
 	char* temp_out_file_name;
 };
 
+void iterate_pipe_helper(char** argv, struct Cmd_status* cmd_io_status);
 void sig_handler(int);
 void process_sig_handler(int);
 

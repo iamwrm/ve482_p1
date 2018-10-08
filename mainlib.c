@@ -52,14 +52,20 @@ void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
 // fds-> input
 void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds)
 {
-	dup2(fds[0], 0);
-	close(fds[1]);
-	set_redirect_status(cmd_io_status, cmd3);
-	if (my_execvp(cmd3[0], cmd3)) {
-		fprintf(stderr,
-			"Error: no such file or "
-			"directory\n");
-		exit(EXIT_FAILURE);
+	pid_t erzi;
+	erzi = fork();
+	if (erzi == 0) {
+		dup2(fds[0], 0);
+		close(fds[1]);
+		set_redirect_status(cmd_io_status, cmd3);
+		if (my_execvp(cmd3[0], cmd3)) {
+			fprintf(stderr,
+				"Error: no such file or "
+				"directory\n");
+			exit(EXIT_FAILURE);
+		}
+	} else {
+		wait(NULL);
 	}
 }
 
@@ -95,6 +101,7 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 		} else {
 			// cmd2
 			// TODO: make sure argv points right place
+			wait(NULL);
 			int deviation = find_the_nth_pipe(argv, depth);
 			cmd_tail(cmd_io_status, argv + deviation + 1, fileds_1);
 			return;
@@ -114,6 +121,7 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 
 		} else {
 			// cmd2
+			wait(NULL);
 			int deviation = find_the_nth_pipe(argv, depth);
 			argv[find_the_nth_pipe(argv, depth + 1)] = NULL;
 			cmd_mid(cmd_io_status, argv + deviation + 1, fileds_1,
@@ -133,6 +141,7 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 			cmd_head(cmd_io_status, argv, fds_1);
 		} else {
 			// cmd2
+			wait(NULL);
 			argv[find_the_nth_pipe(argv, depth + 1)] = NULL;
 			cmd_mid(cmd_io_status,
 				argv + find_the_nth_pipe(argv, 1) + 1, fds_1,
@@ -361,6 +370,8 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 		arg = strtok(NULL, sep_er);
 	}
 	argv[position] = NULL;
+
+	// printf("pipnum: %d", cmd_io_status->pipe_number);
 
 	return 0;
 }
