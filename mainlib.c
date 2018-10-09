@@ -123,11 +123,11 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 
 		} else {
 			// cmd2
-			// wait(NULL);
 			int deviation = find_the_nth_pipe(argv, depth);
 			argv[find_the_nth_pipe(argv, depth + 1)] = NULL;
 			cmd_mid(cmd_io_status, argv + deviation + 1, fileds_1,
 				input_p);
+			wait(NULL);
 			return;
 		}
 	}
@@ -143,11 +143,11 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 			cmd_head(cmd_io_status, argv, fds_1);
 		} else {
 			// cmd2
-			// wait(NULL);
 			argv[find_the_nth_pipe(argv, depth + 1)] = NULL;
 			cmd_mid(cmd_io_status,
 				argv + find_the_nth_pipe(argv, 1) + 1, fds_1,
 				input_p);
+			wait(NULL);
 			return;
 		}
 	}
@@ -311,6 +311,8 @@ void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
 // AFTER : echo 123
 // cmd_io_status->o_redirected are modified
 // cmd_io_status->i_redirected are modified
+// start from argv
+// end till argv[i]==NULL
 void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 {
 	int i = 0;

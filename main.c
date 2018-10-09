@@ -3,6 +3,32 @@
 #include "mainlib.h"
 #endif
 
+void new_set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
+{
+	cmd_io_status->i_redirected = 0;
+	cmd_io_status->o_redirected = 0;
+
+	find_redirect_symbols(argv, cmd_io_status);
+
+	if (cmd_io_status->o_redirected == 1) {
+		int outfile = open(cmd_io_status->temp_out_file_name,
+				   FLAGS_WRITE, MODE_WR);
+
+		dup2(outfile, STDOUT_FILENO);
+	}
+	if (cmd_io_status->o_redirected == 2) {
+		int outfile = open(cmd_io_status->temp_out_file_name,
+				   FLAG_APPEND, MODE_WR);
+
+		dup2(outfile, STDOUT_FILENO);
+	}
+	if (cmd_io_status->i_redirected == 1) {
+		int in_file =
+		    open(cmd_io_status->temp_in_file_name, FLAG_READ, MODE_WR);
+
+		dup2(in_file, STDIN_FILENO);
+	}
+}
 void process_sig_handler(int sig)
 {
 	if (sig == SIGINT) {
@@ -11,20 +37,86 @@ void process_sig_handler(int sig)
 	}
 }
 
+pid_t fork_and_exec(struct Cmd_status* cmd_io_status, char** argv, int in,
+		    int out)
+{
+
+	pid_t new_pid;
+	new_pid = fork();
+	if (new_pid == -1) {
+		fprintf(stderr, "Fork error\n");
+	}
+
+	if (new_pid == 0) {
+		// child
+		set_redirect_status(cmd_io_status, argv);
+		my_execvp(argv[0], argv);
+	} else {
+		// parent
+		close(in);
+		close(out);
+	}
+	return new_pid;
+}
+
 void iterate_pipe_helper(char** argv, struct Cmd_status* cmd_io_status)
 {
-	int pipe_num = cmd_io_status->pipe_number;
+	int pipe_num = cmd_io_status->pipe_number + 1;
 
+	pid_t* pid_array = malloc((pipe_num + 1) * sizeof(pid_t));
+	for (int i = 0; i < pipe_num; i++) {
+		pid_array[i] = 0;
+	}
 	int* pipe_arg_position = malloc((pipe_num + 1) * sizeof(int));
-
 	for (int i = 0; i < pipe_num; i++) {
 		pipe_arg_position[i] = find_the_nth_pipe(argv, i + 1);
-		printf("%d ", pipe_arg_position[i]);
 	}
 	for (int i = 0; i < pipe_num; i++) {
+		if (pipe_arg_position[i] > 0) {
+			argv[pipe_arg_position[i]] = NULL;
+		}
+	}
+
+	int prev = 0;
+
+	for (int i = 0; i < pipe_num; i++) {
+		int pipe_df[2];
+		pipe(pipe_df);
+
+		int deviation = 0;
+		if (i > 0) {
+			deviation = pipe_arg_position[i - 1] + 1;
+		}
+
+		int in = prev;
+		int out = 0;
+		if (i == 0) {
+			in = -1;
+		}
+		if (i == pipe_num - 1) {
+			out = -1;
+		} else {
+			out = pipe_df[1];
+		}
+
+		int iiii = 0;
+
+		pid_array[i] =
+		    fork_and_exec(cmd_io_status, argv + deviation , in, out);
+
+		prev = pipe_df[0];
+	}
+
+	int status;
+	// TODO: waitpid
+	for (int i = 0; i < pipe_num; i++) {
+		if (pid_array[i] > 0) {
+			waitpid(pid_array[i], &status, 0);
+		}
 	}
 
 	free(pipe_arg_position);
+	free(pid_array);
 	return;
 }
 
@@ -50,13 +142,13 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 	}
 	// signal(SIGINT, psig_handler);
 	if (cmd_io_status->pipe_number > 3) {
+		/*
 		pipe_helper(argv, cmd_io_status,
 			    cmd_io_status->init_pipe_number,
 			    cmd_io_status->init_pipe_number, NULL);
-		/*
 		 */
 		// printf("branch i want");
-		// lyh_pipe_helper(argv, cmd_io_status);
+		iterate_pipe_helper(argv, cmd_io_status);
 	} else if (cmd_io_status->pipe_number > 0) {
 		// int fpp = first_pipe_position(argv);
 		// argv[fpp] = NULL;
