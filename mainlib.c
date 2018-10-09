@@ -447,15 +447,6 @@ int first_pipe_position(char** argv)
 	return -1;
 }
 
-void clear_buffer(char* line, char** argv)
-{
-	*line = '\0';
-	int position = 0;
-	while (argv[position] != NULL) {
-		argv[position] = NULL;
-		position++;
-	}
-}
 
 int read_line(char* line_input)
 {

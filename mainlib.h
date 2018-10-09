@@ -66,4 +66,3 @@ void arrow_sep(char* line);
 // make line into * argv[]
 int parse_cmd(char* line, char** argv, struct Cmd_status*);
 
-void clear_buffer(char* line, char** argv);
