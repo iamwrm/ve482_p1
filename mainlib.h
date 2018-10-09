@@ -25,8 +25,6 @@ struct Cmd_status {
 	char* temp_out_file_name;
 };
 
-void iterate_pipe_helper(char** argv, struct Cmd_status* cmd_io_status);
-void sig_handler(int);
 void process_sig_handler(int);
 
 int my_execvp(char* cmdhead, char** cmd);
@@ -37,6 +35,7 @@ void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1);
 
 void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds);
+
 int find_the_nth_pipe(char** argv, int n);
 
 void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
