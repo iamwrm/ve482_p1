@@ -353,29 +353,107 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 {
 	int position = 0;
 
-	arrow_sep(line);
+		arrow_sep(line);
 
-	count_real_pipe(line, cmd_io_status);
+		count_real_pipe(line, cmd_io_status);
 
-	char* arg;
+		char* arg;
 
-	if (!argv) {
-		fprintf(stderr, "allocation error\n");
-		exit(EXIT_FAILURE);
+		if (!argv) {
+			fprintf(stderr, "allocation error\n");
+			exit(EXIT_FAILURE);
+		}
+
+		char* sep_er = " \t\n";
+		// char* sep_er = " \t\r\n\a";
+		arg = strtok(line, sep_er);
+
+		while (arg != NULL) {
+			argv[position] = arg;
+			position++;
+			arg = strtok(NULL, sep_er);
+		}
+
+
+	/*
+	strcat(line," ");
+
+	enum FSM_State {
+		Reading_space,
+		Find_non_space,
+		Reading_non_space,
+		Find_space,
+		Meet_quote,
+		Finish_quote,
+		Meet_dquote,
+		Finish_dquote,
+		Find_redirect
+	} FSM_state;
+
+	FSM_state = Reading_space;
+
+	int i = 0;
+	int word_h = 0;
+	int word_tail = 0;
+	while (line[i] != '\0') {
+		if (FSM_state == Reading_space) {
+			if (line[i] == ' ') {
+				i++;
+				continue;
+			} else {
+				FSM_state = Find_non_space;
+				continue;
+			}
+		} else if (FSM_state == Find_non_space) {
+			word_h = i;
+			FSM_state = Reading_non_space;
+			continue;
+		} else if (FSM_state == Reading_non_space) {
+			if ((line[i] == '<') || (line[i] == '>') ||
+			    (line[i] == '|')) {
+				FSM_state = Find_redirect;
+				continue;
+			} else if (line[i] != ' ') {
+				i++;
+				continue;
+			} else {
+				FSM_state = Find_space;
+				continue;
+			}
+		} else if (FSM_state == Find_space) {
+			word_tail = i;
+			strncpy(argv[position++], line + word_h,
+				word_tail - word_h);
+			FSM_state = Reading_space;
+			continue;
+		} else if (FSM_state == Find_redirect) {
+			if ((line[i] == '<') || (line[i] == '|')) {
+				word_tail = i;
+				strncpy(argv[position++], line + word_h,
+					word_tail - word_h);
+				strncpy(argv[position++], line + i, 1);
+				FSM_state = Reading_space;
+				if (line[i] == '|') {
+					cmd_io_status->pipe_number++;
+				}
+				i++;
+				continue;
+			}
+			i++;
+			continue;
+		}
 	}
+		*/
 
-	char* sep_er = " \t\n";
-	// char* sep_er = " \t\r\n\a";
-	arg = strtok(line, sep_er);
-
-	while (arg != NULL) {
-		argv[position] = arg;
-		position++;
-		arg = strtok(NULL, sep_er);
-	}
 	argv[position] = NULL;
 
 	// printf("pipnum: %d", cmd_io_status->pipe_number);
+	int gg = 0;
+	while (argv[gg] != NULL) {
+		printf("█%s", argv[gg]);
+		gg++;
+	}
+	printf("\n");
 
 	return 0;
 }
@@ -446,7 +524,6 @@ int first_pipe_position(char** argv)
 	}
 	return -1;
 }
-
 
 int read_line(char* line_input)
 {
