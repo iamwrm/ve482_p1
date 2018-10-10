@@ -5,6 +5,12 @@
 
 int my_execvp(char* cmdhead, char** cmd)
 {
+	int gg = 0;
+	while (cmd[gg] != NULL) {
+		printf("_%s", cmd[gg]);
+		gg++;
+	}
+	printf("%d", gg);
 	if (strcmp(cmd[0], "pwd") == 0) {
 		char buf[1024];
 		getcwd(buf, sizeof(buf));
@@ -353,6 +359,8 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 {
 	int position = 0;
 
+	int later = 0;
+	if (!later) {
 		arrow_sep(line);
 
 		count_real_pipe(line, cmd_io_status);
@@ -373,77 +381,77 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 			position++;
 			arg = strtok(NULL, sep_er);
 		}
+	}
 
+	if (later) {
+		strcat(line, " ");
 
-	/*
-	strcat(line," ");
+		enum FSM_State {
+			Reading_space,
+			Find_non_space,
+			Reading_non_space,
+			Find_space,
+			Meet_quote,
+			Finish_quote,
+			Meet_dquote,
+			Finish_dquote,
+			Find_redirect
+		} FSM_state;
 
-	enum FSM_State {
-		Reading_space,
-		Find_non_space,
-		Reading_non_space,
-		Find_space,
-		Meet_quote,
-		Finish_quote,
-		Meet_dquote,
-		Finish_dquote,
-		Find_redirect
-	} FSM_state;
+		FSM_state = Reading_space;
 
-	FSM_state = Reading_space;
-
-	int i = 0;
-	int word_h = 0;
-	int word_tail = 0;
-	while (line[i] != '\0') {
-		if (FSM_state == Reading_space) {
-			if (line[i] == ' ') {
-				i++;
+		int i = 0;
+		int word_h = 0;
+		int word_tail = 0;
+		while (line[i] != '\0') {
+			if (FSM_state == Reading_space) {
+				if (line[i] == ' ') {
+					i++;
+					continue;
+				} else {
+					FSM_state = Find_non_space;
+					continue;
+				}
+			} else if (FSM_state == Find_non_space) {
+				word_h = i;
+				FSM_state = Reading_non_space;
 				continue;
-			} else {
-				FSM_state = Find_non_space;
-				continue;
-			}
-		} else if (FSM_state == Find_non_space) {
-			word_h = i;
-			FSM_state = Reading_non_space;
-			continue;
-		} else if (FSM_state == Reading_non_space) {
-			if ((line[i] == '<') || (line[i] == '>') ||
-			    (line[i] == '|')) {
-				FSM_state = Find_redirect;
-				continue;
-			} else if (line[i] != ' ') {
-				i++;
-				continue;
-			} else {
-				FSM_state = Find_space;
-				continue;
-			}
-		} else if (FSM_state == Find_space) {
-			word_tail = i;
-			strncpy(argv[position++], line + word_h,
-				word_tail - word_h);
-			FSM_state = Reading_space;
-			continue;
-		} else if (FSM_state == Find_redirect) {
-			if ((line[i] == '<') || (line[i] == '|')) {
+			} else if (FSM_state == Reading_non_space) {
+				if ((line[i] == '<') || (line[i] == '>') ||
+				    (line[i] == '|')) {
+					FSM_state = Find_redirect;
+					continue;
+				} else if (line[i] != ' ') {
+					i++;
+					continue;
+				} else {
+					FSM_state = Find_space;
+					continue;
+				}
+			} else if (FSM_state == Find_space) {
 				word_tail = i;
 				strncpy(argv[position++], line + word_h,
 					word_tail - word_h);
-				strncpy(argv[position++], line + i, 1);
 				FSM_state = Reading_space;
-				if (line[i] == '|') {
-					cmd_io_status->pipe_number++;
+				continue;
+			} else if (FSM_state == Find_redirect) {
+				if ((line[i] == '<') || (line[i] == '|')) {
+					word_tail = i;
+					strncpy(argv[position++], line + word_h,
+						word_tail - word_h);
+					strncpy(argv[position++], line + i, 1);
+					FSM_state = Reading_space;
+					if (line[i] == '|') {
+						cmd_io_status->pipe_number++;
+					}
+					i++;
+					continue;
 				}
 				i++;
 				continue;
 			}
-			i++;
-			continue;
 		}
 	}
-		*/
 
 	argv[position] = NULL;
 
@@ -453,8 +461,7 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 		printf("█%s", argv[gg]);
 		gg++;
 	}
-	printf("\n");
-
+	printf("pipe num%d\n", cmd_io_status->pipe_number);
 	return 0;
 }
 
