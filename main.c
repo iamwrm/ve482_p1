@@ -31,6 +31,7 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 		fflush(stdout);
 		return 0;
 	}
+	cmd_io_status->init_pipe_number = cmd_io_status->pipe_number;
 	// signal(SIGINT, psig_handler);
 	if (cmd_io_status->pipe_number > 3) {
 		pipe_helper(argv, cmd_io_status,

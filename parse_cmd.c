@@ -33,7 +33,7 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 			i++;
 			continue;
 
-		} else {
+		} else {  // in_quote < 0
 			if (line[i] == '"') {
 				in_quote = 2;
 				delete_char_at(line, i);
@@ -46,6 +46,17 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 			}
 			if (line[i] == ' ') {
 				line[i] = full_block;
+				i++;
+				continue;
+			}
+			if (line[i] == '|') {
+				insert_blank(line, i);
+				insert_blank(line, i + 2);
+				line[i] = full_block;
+				line[i + 1] = ']';
+				line[i + 2] = full_block;
+				i = i + 2;
+				cmd_io_status->pipe_number++;
 				i++;
 				continue;
 			}

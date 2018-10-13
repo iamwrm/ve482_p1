@@ -31,7 +31,7 @@ int find_the_nth_pipe(char** argv, int n)
 	int i = 0;
 	int j = 0;
 	while (argv[i] != NULL) {
-		if (strcmp(argv[i], "|") == 0) {
+		if (strcmp(argv[i], "]") == 0) {
 			j++;
 		}
 		if (j == n) {
@@ -100,7 +100,7 @@ void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 {
 	int i = 0;
 	while (argv[i] != NULL) {
-		if (strcmp(argv[i], "|") == 0) {
+		if (strcmp(argv[i], "]") == 0) {
 			break;
 		}
 		if (strcmp(argv[i], ">") == 0) {
@@ -137,7 +137,7 @@ int first_pipe_position(char** argv)
 {
 	int i = 0;
 	while (argv[i] != NULL) {
-		if (strcmp(argv[i], "|") == 0) {
+		if (strcmp(argv[i], "]") == 0) {
 			return i;
 		}
 		i++;
