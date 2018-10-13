@@ -46,6 +46,15 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 	return 0;
 }
 
+void clear_buffer(struct Cmd_status* cmd_io_status, char** argv, char* line)
+{
+	for (int i = 0; i < 128; i++) {
+		argv[i] = NULL;
+	}
+	line[0] = '\0';
+	cmd_io_status->pipe_number = 0;
+}
+
 int main()
 {
 	char line[1024];
@@ -80,6 +89,7 @@ int main()
 		if (process_cmd(argv, &cmd_io_status)) {
 			break;
 		}
+		clear_buffer(&cmd_io_status, argv, line);
 	}
 
 	printf("exit\n");
