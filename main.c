@@ -59,6 +59,7 @@ void clear_buffer(struct Cmd_status* cmd_io_status, char** argv, char* line)
 int main()
 {
 	char line[1024];
+	char extra_space[1024];
 
 	//	signal(SIGINT, SIG_IGN);
 
@@ -87,7 +88,7 @@ int main()
 		if (read_line(line)) {
 			continue;
 		}
-		parse_cmd(line, argv, &cmd_io_status);
+		parse_cmd(line, argv, &cmd_io_status, extra_space);
 
 		if (DEBUG_MODE) {
 			print_argv(argv);

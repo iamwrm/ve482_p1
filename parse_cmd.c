@@ -4,10 +4,10 @@ void my_strcpy(char* des, char* ori)
 {
 	int i = 0;
 	while (ori[i] != '\0') {
-		des[i]=ori[i];
+		des[i] = ori[i];
 		i++;
 	}
-	des[i]='\0';
+	des[i] = '\0';
 }
 
 void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
@@ -111,7 +111,8 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 	return;
 }
 
-int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
+int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
+	      char* extra_space)
 {
 	char full_block = '[';
 
@@ -148,14 +149,14 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 	argv[position] = NULL;
 
 	if (position > 1) {
-		if (strcmp(argv[position - 1], "<") == 0) {
-			char* templine = malloc(1024 * sizeof(char));
+		if ((strcmp(argv[position - 1], "<") == 0) ||
+		    (strcmp(argv[position - 1], ">") == 0)) {
 			printf("> ");
-			read_line(templine);
-			arg = strtok(templine, " \n");
-			argv[position]= arg;
+			read_line(extra_space);
+			arg = strtok(extra_space, " \n");
+
+			argv[position] = arg;
 			argv[position + 1] = NULL;
-			free(templine);
 		}
 	}
 
