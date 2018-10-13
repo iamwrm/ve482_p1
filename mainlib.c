@@ -54,8 +54,7 @@ void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 		set_redirect_status(cmd_io_status, argv);
 
 		if (my_execvp(*argv, argv)) {
-			fprintf(stderr, "%s: no such file or directory\n",
-				argv[0]);
+			fprintf(stderr, "%s: command not found\n", argv[0]);
 			exit(0);
 		}
 		return;

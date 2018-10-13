@@ -24,6 +24,8 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 			} else {
 				char* templine = malloc(1024 * sizeof(char));
 				printf("> ");
+				fflush(stdout);
+				fflush(stdin);
 				read_line(templine);
 				delete_char_at(line, strlen(line) - 1);
 				strcat(line, "\n");
@@ -137,6 +139,9 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 	if (((line[strlen(line) - 2] == '<') ||
 	     (line[strlen(line) - 2] == '>'))) {
 		printf("> ");
+		fflush(stdout);
+		fflush(stderr);
+		fflush(stdin);
 		read_line(extra_space);
 		strcat(line, extra_space);
 		parse_cmd_insert_sep(line, cmd_io_status, full_block);
@@ -161,6 +166,9 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 		    (strcmp(argv[position - 1], ">") == 0) ||
 		    (strcmp(argv[position - 1], "]") == 0)) {
 			printf("> ");
+			fflush(stdout);
+			fflush(stderr);
+			fflush(stdin);
 			read_line(extra_space);
 			arg = strtok(extra_space, " \n");
 			while (arg != NULL) {

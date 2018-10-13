@@ -10,7 +10,7 @@ void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 	close(fds[0]);
 	set_redirect_status(cmd_io_status, cmd2);
 	if (my_execvp(cmd2[0], cmd2)) {
-		fprintf(stderr, "%s: no such file or directory\n", cmd2[0]);
+		fprintf(stderr, "%s: command not found\n", cmd2[0]);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -22,7 +22,7 @@ void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
 	close(fds_1[0]);
 	set_redirect_status(cmd_io_status, cmd1);
 	if (my_execvp(cmd1[0], cmd1)) {
-		fprintf(stderr, "%s: no such file or directory\n", cmd1[0]);
+		fprintf(stderr, "%s: command not found\n", cmd1[0]);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -34,7 +34,7 @@ void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds)
 	close(fds[1]);
 	set_redirect_status(cmd_io_status, cmd3);
 	if (my_execvp(cmd3[0], cmd3)) {
-		fprintf(stderr, "%s: no such file or directory\n", cmd3[0]);
+		fprintf(stderr, "%s: command not found\n", cmd3[0]);
 		exit(EXIT_FAILURE);
 	}
 }
