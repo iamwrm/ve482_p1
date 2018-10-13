@@ -22,10 +22,8 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 	}
 	if (strcmp(argv[0], "cd") == 0) {
 		if (chdir(argv[1]) != 0) {
-			printf(
-			    "mumsh: cd: %s: No such file or "
-			    "directory\n",
-			    argv[1]);
+			fprintf(stderr, "%s: No such file or directory\n",
+				argv[1]);
 			return 0;
 		}
 		fflush(stdout);
