@@ -88,8 +88,13 @@ void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
 	if (cmd_io_status->i_redirected == 1) {
 		int in_file =
 		    open(cmd_io_status->temp_in_file_name, FLAG_READ, MODE_WR);
-		if (in_file == -1) {
+		if ((in_file == -1) && (errno == 1)) {
 			printf("%s: Permission denied\n",
+			       cmd_io_status->temp_in_file_name);
+			exit(0);
+		}
+		if ((in_file == -1) && (errno == 2)) {
+			printf("%s: No such file or directory\n",
 			       cmd_io_status->temp_in_file_name);
 			exit(0);
 		}

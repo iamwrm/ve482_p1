@@ -1,5 +1,6 @@
 #define _XOPEN_SOURCE 700
 #include <assert.h>
+#include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
@@ -11,11 +12,11 @@
 #include <unistd.h>
 
 #define MODE_WR 0666
-#define FLAG_READ O_RDONLY 
+#define FLAG_READ O_RDONLY
 #define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
 #define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 #define BUFF_SIZE 1024
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 #define WAIT_IN_PARENT 1
 
 struct Cmd_status {
