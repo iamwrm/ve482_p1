@@ -15,7 +15,7 @@
 #define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
 #define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 #define BUFF_SIZE 1024
-#define DEBUG_MODE 0
+#define DEBUG_MODE 1
 
 struct Cmd_status {
 	int i_redirected;  // 0 -> stdin ; 1 -> file_in
@@ -27,6 +27,7 @@ struct Cmd_status {
 };
 
 void print_argv(char ** argv);
+
 void delete_char_at(char* line, int index);
 
 void process_sig_handler(int);

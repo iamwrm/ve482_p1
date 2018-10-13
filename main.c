@@ -89,6 +89,10 @@ int main()
 		}
 		parse_cmd(line, argv, &cmd_io_status);
 
+		if (DEBUG_MODE) {
+			print_argv(argv);
+		}
+
 		if (process_cmd(argv, &cmd_io_status)) {
 			break;
 		}

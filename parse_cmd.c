@@ -15,6 +15,8 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 				char* templine = malloc(1024 * sizeof(char));
 				printf("> ");
 				read_line(templine);
+				delete_char_at(line, strlen(line) - 1);
+				strcat(line, "\n");
 				strcat(line, templine);
 				free(templine);
 			}
@@ -94,6 +96,9 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 			i++;
 		}
 	}
+	delete_char_at(line, strlen(line) - 1);
+	strcat(line, "\0");
+	return;
 }
 
 int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
@@ -107,8 +112,8 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 
 	parse_cmd_insert_sep(line, cmd_io_status, full_block);
 
-	if (!DEBUG_MODE) {
-		printf("parsed line:%s\n", line);
+	if (DEBUG_MODE) {
+		printf("DEBUG:parsed line:%s\n", line);
 	}
 
 	char* arg;
@@ -120,7 +125,7 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 
 	// char sep_er[20];
 
-	char* sep_er = "[\n";
+	char* sep_er = "[";
 	// char* sep_er = " \t\r\n\a";
 	arg = strtok(line, sep_er);
 
@@ -132,8 +137,9 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 
 	argv[position] = NULL;
 
-	if (!DEBUG_MODE) {
+	if (DEBUG_MODE) {
 		int gg = 0;
+		printf("DEBUG:");
 		while (argv[gg] != NULL) {
 			printf("|%s", argv[gg]);
 			gg++;
@@ -175,7 +181,7 @@ void delete_char_at(char* word, int idxToDel)
 void print_argv(char** argv)
 {
 	int i = 0;
-	printf("argv:");
+	printf("DEBUG:argv:");
 	while (argv[i] != NULL) {
 		printf("█%s", argv[i]);
 		i++;
