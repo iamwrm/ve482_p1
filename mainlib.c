@@ -45,9 +45,14 @@ int find_the_nth_pipe(char** argv, int n)
 
 void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 {
+	if (check_du_re(argv)) {
+		fprintf(stderr, "error: duplicated input redirection\n");
+		return;
+	}
+	signal(SIGINT, process_sig_handler);
 	pid_t pid_d;
 	pid_d = fork();
-	signal(SIGINT, process_sig_handler);
+
 	if (pid_d == 0) {
 		set_redirect_status(cmd_io_status, argv);
 
@@ -75,7 +80,6 @@ void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
 	if (cmd_io_status->o_redirected == 1) {
 		int outfile = open(cmd_io_status->temp_out_file_name,
 				   FLAGS_WRITE, MODE_WR);
-
 		dup2(outfile, STDOUT_FILENO);
 	}
 	if (cmd_io_status->o_redirected == 2) {
@@ -87,6 +91,7 @@ void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
 	if (cmd_io_status->i_redirected == 1) {
 		int in_file =
 		    open(cmd_io_status->temp_in_file_name, FLAG_READ, MODE_WR);
+		printf("infile%d\n", in_file);
 
 		dup2(in_file, STDIN_FILENO);
 	}
@@ -184,4 +189,35 @@ void remove_blank_in_argv(char** argv)
 	}
 	argv[new_position] = NULL;
 	free(temp_argv);
+}
+
+int check_du_re(char** argv)
+{
+	int i = 0;
+	int out_r = 0;
+	int in_r = 0;
+
+	while (argv[i] != NULL) {
+		if (strcmp(argv[i], ">") == 0) {
+			out_r++;
+			i++;
+			continue;
+		}
+		if (strcmp(argv[i], ">>") == 0) {
+			out_r++;
+			i++;
+			continue;
+		}
+		if (strcmp(argv[i], "<") == 0) {
+			in_r++;
+			i++;
+			continue;
+		}
+		i++;
+	}
+	if ((out_r > 1) || (in_r > 1)) {
+		return 1;
+	} else {
+		return 0;
+	}
 }
