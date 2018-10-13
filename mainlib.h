@@ -26,6 +26,8 @@ struct Cmd_status {
 	char* temp_out_file_name;
 };
 
+void delete_char_at(char * line , int index);
+
 void process_sig_handler(int);
 
 int my_execvp(char* cmdhead, char** cmd);

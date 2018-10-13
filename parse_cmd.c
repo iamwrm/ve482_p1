@@ -1,16 +1,15 @@
 #include "mainlib.h"
 
 void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
-			  char full_block)
+			  char full_block, int* in_quote)
 {
 	cmd_io_status->pipe_number = 0;
 	cmd_io_status->init_pipe_number = 0;
 	int i = 0;
-	int in_quote = 0;
 	while (line[i] != '\0') {
-		if (in_quote) {
+		if (*in_quote) {
 			if (line[i] == '"') {
-				in_quote = 0;
+				*in_quote = 0;
 				line[i] = full_block;
 				i++;
 				continue;
@@ -20,7 +19,7 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 
 		} else {
 			if (line[i] == '"') {
-				in_quote = 1;
+				*in_quote = 1;
 				line[i] = full_block;
 				i++;
 				continue;
@@ -80,8 +79,12 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 	arrow_sep(line);
 	count_real_pipe(line, cmd_io_status);
 	*/
+	int if_in_quote = 0;
 
-	parse_cmd_insert_sep(line, cmd_io_status, full_block);
+	parse_cmd_insert_sep(line, cmd_io_status, full_block, &if_in_quote);
+	if (!DEBUG_MODE) {
+		printf("parsed line:|%s\n", line);
+	}
 
 	char* arg;
 
@@ -112,7 +115,7 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 		}
 		printf("\npipe num%d\n", cmd_io_status->pipe_number);
 	}
-	return 0;
+	return if_in_quote;
 }
 
 void arrow_sep(char* line)
@@ -168,4 +171,9 @@ void count_real_pipe(const char* line, struct Cmd_status* cmd_status)
 	cmd_status->pipe_number = pipe_count;
 	cmd_status->init_pipe_number = pipe_count;
 	return;
+}
+
+void delete_char_at(char* word, int idxToDel)
+{
+	memmove(&word[idxToDel], &word[idxToDel + 1], strlen(word) - idxToDel);
 }
