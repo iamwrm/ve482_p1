@@ -10,8 +10,11 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 		if (*in_quote) {
 			if (line[i] == '"') {
 				*in_quote = 0;
+				/*
 				line[i] = full_block;
 				i++;
+				*/
+				delete_char_at(line, i);
 				continue;
 			}
 			i++;
@@ -20,8 +23,11 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 		} else {
 			if (line[i] == '"') {
 				*in_quote = 1;
+				/*
 				line[i] = full_block;
 				i++;
+				*/
+				delete_char_at(line, i);
 				continue;
 			}
 			if (line[i] == ' ') {
