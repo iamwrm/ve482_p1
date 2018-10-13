@@ -37,8 +37,12 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 		pipe_helper(argv, cmd_io_status,
 			    cmd_io_status->init_pipe_number,
 			    cmd_io_status->init_pipe_number, NULL);
-	} else if (cmd_io_status->pipe_number > 0) {
+	} else if (cmd_io_status->pipe_number == 3) {
 		pipe_command_3(argv, cmd_io_status);
+	} else if (cmd_io_status->pipe_number == 2) {
+		pipe_command_2(argv, cmd_io_status);
+	} else if (cmd_io_status->pipe_number == 1) {
+		pipe_command_1(argv, cmd_io_status);
 	} else {
 		dup_and_exc(cmd_io_status, argv);
 		// break;

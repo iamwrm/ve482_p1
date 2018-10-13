@@ -10,9 +10,7 @@ void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 	close(fds[0]);
 	set_redirect_status(cmd_io_status, cmd2);
 	if (my_execvp(cmd2[0], cmd2)) {
-		fprintf(stderr,
-			"Error: no such file or "
-			"directory\n");
+		fprintf(stderr, "%s: no such file or directory\n", cmd2[0]);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -24,9 +22,7 @@ void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
 	close(fds_1[0]);
 	set_redirect_status(cmd_io_status, cmd1);
 	if (my_execvp(cmd1[0], cmd1)) {
-		fprintf(stderr,
-			"Error: no such file or "
-			"directory\n");
+		fprintf(stderr, "%s: no such file or directory\n", cmd1[0]);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -38,9 +34,7 @@ void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds)
 	close(fds[1]);
 	set_redirect_status(cmd_io_status, cmd3);
 	if (my_execvp(cmd3[0], cmd3)) {
-		fprintf(stderr,
-			"Error: no such file or "
-			"directory\n");
+		fprintf(stderr, "%s: no such file or directory\n", cmd3[0]);
 		exit(EXIT_FAILURE);
 	}
 }
@@ -116,6 +110,82 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 			wait(NULL);
 			return;
 		}
+	}
+	return;
+}
+
+void pipe_command_2(char** argv, struct Cmd_status* cmd_io_status)
+{
+	char** cmd1 = argv;
+
+	int i1 = first_pipe_position(cmd1);
+	char** cmd2 = cmd1 + i1 + 1;
+	cmd1[i1] = NULL;
+
+	int i2 = first_pipe_position(cmd2);
+	char** cmd3 = cmd2 + i2 + 1;
+	cmd2[i2] = NULL;
+
+	pid_t pid_0;
+	pid_0 = fork();
+
+	// else -> wait(NULL) the shell process
+	if (pid_0 == 0) {
+		int fds[2];  // file descriptors
+		pipe(fds);
+		pid_t pid_1;
+
+		pid_1 = fork();
+
+		if (pid_1 == 0) {
+			int fds_1[2];  // file descriptors
+			pipe(fds_1);
+			pid_t pid_2;
+
+			pid_2 = fork();
+			if (pid_2 == 0) {
+				// cmd1
+				cmd_head(cmd_io_status, cmd1, fds_1);
+			} else {
+				// cmd2
+				cmd_mid(cmd_io_status, cmd2, fds_1, fds);
+			}
+		} else {
+			// cmd3
+			cmd_tail(cmd_io_status, cmd3, fds);
+		}
+	} else {
+		wait(NULL);
+	}
+	return;
+}
+
+void pipe_command_1(char** argv, struct Cmd_status* cmd_io_status)
+{
+	char** cmd1 = argv;
+
+	int i1 = first_pipe_position(cmd1);
+	char** cmd2 = cmd1 + i1 + 1;
+	cmd1[i1] = NULL;
+
+	pid_t pid_0;
+	pid_0 = fork();
+	// else -> wait(NULL) the shell process
+	if (pid_0 == 0) {
+		int fds[2];  // file descriptors
+		pipe(fds);
+		pid_t pid_1;
+
+		pid_1 = fork();
+
+		if (pid_1 == 0) {
+			cmd_head(cmd_io_status, cmd1, fds);
+		} else {
+			// cmd3
+			cmd_tail(cmd_io_status, cmd2, fds);
+		}
+	} else {
+		wait(NULL);
 	}
 	return;
 }
@@ -224,5 +294,3 @@ void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status)
 	}
 	return;
 }
-
-

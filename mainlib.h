@@ -15,7 +15,7 @@
 #define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
 #define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 #define BUFF_SIZE 1024
-#define DEBUG_MODE 1
+#define DEBUG_MODE 0
 
 struct Cmd_status {
 	int i_redirected;  // 0 -> stdin ; 1 -> file_in
@@ -47,6 +47,8 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 		 int depth, int* input_p);
 
 void pipe_command_3(char** argv, struct Cmd_status* cmd_io_status);
+void pipe_command_2(char** argv, struct Cmd_status* cmd_io_status);
+void pipe_command_1(char** argv, struct Cmd_status* cmd_io_status);
 
 void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status);
 

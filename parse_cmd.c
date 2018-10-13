@@ -134,6 +134,13 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 		exit(EXIT_FAILURE);
 	}
 
+	if (((line[1] == '<') || (line[1] == '>')) && (strlen(line) == 3)) {
+		printf("> ");
+		read_line(extra_space);
+		strcat(line, extra_space);
+		parse_cmd_insert_sep(line, cmd_io_status, full_block);
+	}
+
 	// char sep_er[20];
 
 	char* sep_er = "[";
@@ -147,6 +154,8 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 	}
 
 	argv[position] = NULL;
+
+	printf("DEBUG:position:%d\n", position);
 
 	if (position > 1) {
 		if ((strcmp(argv[position - 1], "<") == 0) ||
