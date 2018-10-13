@@ -65,7 +65,9 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 					 fileds_1);
 			}
 		} else {
-			wait(NULL);
+			if (WAIT_IN_PARENT) {
+				wait(NULL);
+			}
 		}
 		return;
 	}
@@ -87,7 +89,9 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 			argv[find_the_nth_pipe(argv, depth + 1)] = NULL;
 			cmd_mid(cmd_io_status, argv + deviation + 1, fileds_1,
 				input_p);
-			wait(NULL);
+			if (WAIT_IN_PARENT) {
+				wait(NULL);
+			}
 			return;
 		}
 	}
@@ -107,7 +111,9 @@ void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
 			cmd_mid(cmd_io_status,
 				argv + find_the_nth_pipe(argv, 1) + 1, fds_1,
 				input_p);
-			wait(NULL);
+			if (WAIT_IN_PARENT) {
+				wait(NULL);
+			}
 			return;
 		}
 	}
@@ -155,7 +161,11 @@ void pipe_command_2(char** argv, struct Cmd_status* cmd_io_status)
 			cmd_tail(cmd_io_status, cmd3, fds);
 		}
 	} else {
-		wait(NULL);
+		if (WAIT_IN_PARENT) {
+			if (WAIT_IN_PARENT) {
+				wait(NULL);
+			}
+		}
 	}
 	return;
 }
@@ -185,7 +195,9 @@ void pipe_command_1(char** argv, struct Cmd_status* cmd_io_status)
 			cmd_tail(cmd_io_status, cmd2, fds);
 		}
 	} else {
-		wait(NULL);
+		if (WAIT_IN_PARENT) {
+			wait(NULL);
+		}
 	}
 	return;
 }
@@ -246,7 +258,9 @@ void pipe_command_3(char** argv, struct Cmd_status* cmd_io_status)
 			cmd_tail(cmd_io_status, cmd4, fds);
 		}
 	} else {
-		wait(NULL);
+		if (WAIT_IN_PARENT) {
+			wait(NULL);
+		}
 	}
 	return;
 }
@@ -290,7 +304,9 @@ void pipe_command(char** cmd1, char** cmd2, struct Cmd_status* cmd_io_status)
 			close(fds[0]);
 		}
 	} else {
-		wait(NULL);
+		if (WAIT_IN_PARENT) {
+			wait(NULL);
+		}
 	}
 	return;
 }

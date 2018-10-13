@@ -59,7 +59,9 @@ void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 		return;
 
 	} else {  // parent
-		wait(NULL);
+		if (WAIT_IN_PARENT) {
+			wait(NULL);
+		}
 	}
 }
 
