@@ -21,6 +21,26 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 			i++;
 			continue;
 		}
+		if (line[i] == '>') {
+			// case: a > b
+			if ((line + i + 1 != NULL) && (line[i + 1] != '>')) {
+				insert_blank(line, i);
+				insert_blank(line, i + 2);
+				line[i] = full_block;
+				line[i + 2] = full_block;
+				i = i + 2;
+				i++;
+				continue;
+			}
+			// case: a>>b
+			if ((line + i + 1 != NULL) && (line[i + 1] == '>')) {
+				insert_blank(line, i);
+				insert_blank(line, i + 3);
+				line[i] = full_block;
+				line[i + 3] = full_block;
+				i += 2;
+			}
+		}
 		i++;
 	}
 }
@@ -35,11 +55,12 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 	cmd_io_status->pipe_number = 0;
 	cmd_io_status->init_pipe_number = 0;
 
+	/*
 	arrow_sep(line);
-
 	count_real_pipe(line, cmd_io_status);
+	*/
 
-	// parse_cmd_insert_sep(line, cmd_io_status, full_block);
+	parse_cmd_insert_sep(line, cmd_io_status, full_block);
 
 	char* arg;
 
@@ -50,8 +71,8 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 
 	// char sep_er[20];
 
-	// char* sep_er = "[";
-	char* sep_er = " \t\r\n\a";
+	char* sep_er = "[\n";
+	// char* sep_er = " \t\r\n\a";
 	arg = strtok(line, sep_er);
 
 	while (arg != NULL) {
@@ -62,14 +83,13 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status)
 
 	argv[position] = NULL;
 
-	// printf("pipnum: %d", cmd_io_status->pipe_number);
-	if (DEBUG_MODE) {
+	if (!DEBUG_MODE) {
 		int gg = 0;
 		while (argv[gg] != NULL) {
-			printf("%c%s", full_block, argv[gg]);
+			printf("|%s", argv[gg]);
 			gg++;
 		}
-		printf("pipe num%d\n", cmd_io_status->pipe_number);
+		printf("\npipe num%d\n", cmd_io_status->pipe_number);
 	}
 	return 0;
 }
@@ -128,5 +148,3 @@ void count_real_pipe(const char* line, struct Cmd_status* cmd_status)
 	cmd_status->init_pipe_number = pipe_count;
 	return;
 }
-
-
