@@ -75,8 +75,9 @@ int main()
 	struct Cmd_status cmd_io_status;
 	cmd_io_status.temp_in_file_name = malloc(1024 * sizeof(char));
 	cmd_io_status.temp_out_file_name = malloc(1024 * sizeof(char));
+	cmd_io_status.i_redirected = 0;
+	cmd_io_status.o_redirected = 0;
 
-	int parse_status = 0;
 	while (1) {
 		signal(SIGINT, process_sig_handler);
 		printf("%s", sh_name);
@@ -85,10 +86,7 @@ int main()
 		if (read_line(line)) {
 			continue;
 		}
-		parse_status = parse_cmd(line, argv, &cmd_io_status);
-		if (parse_status==1){
-			continue;
-		}
+		parse_cmd(line, argv, &cmd_io_status);
 
 		if (process_cmd(argv, &cmd_io_status)) {
 			break;

@@ -26,7 +26,8 @@ struct Cmd_status {
 	char* temp_out_file_name;
 };
 
-void delete_char_at(char * line , int index);
+void print_argv(char ** argv);
+void delete_char_at(char* line, int index);
 
 void process_sig_handler(int);
 
@@ -54,7 +55,7 @@ void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv);
 
 void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status);
 
-int read_line(char* line_input );
+int read_line(char* line_input);
 
 int first_pipe_position(char** argv);
 
@@ -68,4 +69,3 @@ void arrow_sep(char* line);
 
 // make line into * argv[]
 int parse_cmd(char* line, char** argv, struct Cmd_status*);
-

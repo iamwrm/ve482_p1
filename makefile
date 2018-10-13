@@ -26,6 +26,6 @@ clean:
 	$(RM) *.o *.a *~ $(MUMSH) $(MUMSHMC)
 
 tar:all
-	tar -cvzf p1.tar Makefile main.c mainlib.c mainlib.h
+	tar -cvzf p1.tar Makefile $(MUMSH_SRC)
 tar_cmake:all
-	tar -cvzf p1cmake.tar CMakeLists.txt main.c
+	tar -cvzf p1cmake.tar CMakeLists.txt main.c 
