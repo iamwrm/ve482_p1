@@ -7,6 +7,7 @@ int my_execvp(char* cmdhead, char** cmd)
 {
 	if (DEBUG_MODE) {
 		int gg = 0;
+		printf("DEBUG:");
 		while (cmd[gg] != NULL) {
 			printf("_%s", cmd[gg]);
 			gg++;
@@ -131,7 +132,6 @@ void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 	}
 	remove_blank_in_argv(argv);
 }
-
 
 int first_pipe_position(char** argv)
 {
