@@ -134,7 +134,8 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 		exit(EXIT_FAILURE);
 	}
 
-	if (((line[1] == '<') || (line[1] == '>')) && (strlen(line) == 3)) {
+	if (((line[strlen(line) - 2] == '<') ||
+	     (line[strlen(line) - 2] == '>'))) {
 		printf("> ");
 		read_line(extra_space);
 		strcat(line, extra_space);
@@ -154,8 +155,6 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 	}
 
 	argv[position] = NULL;
-
-	printf("DEBUG:position:%d\n", position);
 
 	if (position > 1) {
 		if ((strcmp(argv[position - 1], "<") == 0) ||
