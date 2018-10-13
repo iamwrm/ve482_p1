@@ -150,13 +150,17 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 
 	if (position > 1) {
 		if ((strcmp(argv[position - 1], "<") == 0) ||
-		    (strcmp(argv[position - 1], ">") == 0)) {
+		    (strcmp(argv[position - 1], ">") == 0) ||
+		    (strcmp(argv[position - 1], "]") == 0)) {
 			printf("> ");
 			read_line(extra_space);
 			arg = strtok(extra_space, " \n");
-
-			argv[position] = arg;
-			argv[position + 1] = NULL;
+			while (arg != NULL) {
+				argv[position] = arg;
+				position++;
+				arg = strtok(NULL, sep_er);
+			}
+			argv[position] = NULL;
 		}
 	}
 
