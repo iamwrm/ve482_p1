@@ -45,15 +45,12 @@ int find_the_nth_pipe(char** argv, int n)
 
 void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 {
-	if (check_du_re(argv)) {
-		fprintf(stderr, "error: duplicated input redirection\n");
-		return;
-	}
 	signal(SIGINT, process_sig_handler);
 	pid_t pid_d;
 	pid_d = fork();
 
 	if (pid_d == 0) {
+		check_du_re(argv);
 		set_redirect_status(cmd_io_status, argv);
 
 		if (my_execvp(*argv, argv)) {
@@ -91,7 +88,11 @@ void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
 	if (cmd_io_status->i_redirected == 1) {
 		int in_file =
 		    open(cmd_io_status->temp_in_file_name, FLAG_READ, MODE_WR);
-		printf("infile%d\n", in_file);
+		if (in_file == -1) {
+			printf("%s: Permission denied\n",
+			       cmd_io_status->temp_in_file_name);
+			exit(0);
+		}
 
 		dup2(in_file, STDIN_FILENO);
 	}
@@ -215,9 +216,15 @@ int check_du_re(char** argv)
 		}
 		i++;
 	}
-	if ((out_r > 1) || (in_r > 1)) {
+	if (out_r > 1) {
+		fprintf(stderr, "error: duplicated output redirection\n");
+		exit(0);
 		return 1;
-	} else {
-		return 0;
 	}
+	if (out_r > 1) {
+		fprintf(stderr, "error: duplicated input redirection\n");
+		exit(0);
+		return 1;
+	}
+	return 0;
 }
