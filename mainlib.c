@@ -132,60 +132,6 @@ void find_redirect_symbols(char** argv, struct Cmd_status* cmd_io_status)
 	remove_blank_in_argv(argv);
 }
 
-void arrow_sep(char* line)
-{
-	int i = 0;
-	while (line[i] != '\0') {
-		if (line[i] == '<') {
-			insert_blank(line, i);
-			insert_blank(line, i + 2);
-			i++;
-		}
-		if (line[i] == '|') {
-			insert_blank(line, i);
-			insert_blank(line, i + 2);
-			i++;
-		}
-		if (line[i] == '>') {
-			// case: a>b
-			if ((line + i + 1 != NULL) && (line[i + 1] != '>')) {
-				insert_blank(line, i);
-				insert_blank(line, i + 2);
-				i++;
-			}
-			// case: a>>b
-			if ((line + i + 1 != NULL) && (line[i + 1] == '>')) {
-				insert_blank(line, i);
-				insert_blank(line, i + 3);
-				i += 2;
-			}
-		}
-		i++;
-	}
-}
-
-void insert_blank(char* line, int pos)
-{
-	char temp[1024];
-	strcpy(temp, line + pos);
-	line[pos] = ' ';
-	strcpy(line + pos + 1, temp);
-}
-
-void count_real_pipe(const char* line, struct Cmd_status* cmd_status)
-{
-	int pipe_count = 0;
-	// TODO: provide support for quotes
-	int i = 0;
-	while (*(line + i++) != '\0') {
-		if (line[i] == '|') {
-			pipe_count++;
-		}
-	}
-	cmd_status->pipe_number = pipe_count;
-	cmd_status->init_pipe_number = pipe_count;
-	return;
-}
 
 int first_pipe_position(char** argv)
 {
