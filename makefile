@@ -7,7 +7,7 @@ MUMSHMC_FLAGS = -fsanitize=address -fno-omit-frame-pointer -fsanitize=undefined 
 MUMSHMC = mumsh_memory_check
 .PHONY: clean
 
-all: $(MUMSH) $(MUMSHMC)
+all: $(MUMSH) $(MUMSHMC) mainlib.h
 	@echo mumsh successfully constructed
 
 old: mumsh.c

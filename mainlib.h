@@ -16,7 +16,7 @@
 #define FLAG_APPEND O_WRONLY | O_CREAT | O_APPEND
 #define FLAGS_WRITE O_WRONLY | O_CREAT | O_TRUNC
 #define BUFF_SIZE 1024
-#define DEBUG_MODE 0
+#define DEBUG_MODE 1
 #define WAIT_IN_PARENT 1
 
 struct Cmd_status {

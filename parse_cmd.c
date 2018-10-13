@@ -13,8 +13,6 @@ void my_strcpy(char* des, char* ori)
 void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 			  char full_block)
 {
-	cmd_io_status->pipe_number = 0;
-	cmd_io_status->init_pipe_number = 0;
 	int i = 0;
 	int in_quote = 0;
 	while (1) {
@@ -165,18 +163,45 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 		if ((strcmp(argv[position - 1], "<") == 0) ||
 		    (strcmp(argv[position - 1], ">") == 0) ||
 		    (strcmp(argv[position - 1], "]") == 0)) {
-			printf("> ");
-			fflush(stdout);
-			fflush(stderr);
-			fflush(stdin);
-			read_line(extra_space);
-			arg = strtok(extra_space, " \n");
-			while (arg != NULL) {
-				argv[position] = arg;
-				position++;
-				arg = strtok(NULL, sep_er);
+			while (1) {
+				printf("> ");
+				fflush(stdout);
+				fflush(stderr);
+				fflush(stdin);
+				read_line(extra_space);
+				parse_cmd_insert_sep(extra_space, cmd_io_status,
+						     full_block);
+				if (DEBUG_MODE) {
+					printf(
+					    "DEBUG: in loop parsed line:%s\n",
+					    extra_space);
+				}
+				arg = strtok(extra_space, "[");
+				while (arg != NULL) {
+					if (DEBUG_MODE) {
+						printf(
+						    "DEBUG: in loop saved "
+						    "arg[%d]:%s\n",
+						    position, arg);
+					}
+					argv[position] = arg;
+					position++;
+					arg = strtok(NULL, sep_er);
+				}
+				argv[position] = NULL;
+				if (position > 1) {
+					if ((strcmp(argv[position - 1], "<") ==
+					     0) ||
+					    (strcmp(argv[position - 1], ">") ==
+					     0) ||
+					    (strcmp(argv[position - 1], "]") ==
+					     0)) {
+						printf("continued \n");
+						continue;
+					}
+				}
+				break;
 			}
-			argv[position] = NULL;
 		}
 	}
 
@@ -187,8 +212,8 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 			printf("|%s", argv[gg]);
 			gg++;
 		}
-		printf("\n");
-		// printf("\npipe num%d\n", cmd_io_status->pipe_number);
+		// printf("\n");
+		printf("\npipe num%d\n", cmd_io_status->pipe_number);
 	}
 	return 1;
 }
