@@ -6,24 +6,31 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 	cmd_io_status->pipe_number = 0;
 	cmd_io_status->init_pipe_number = 0;
 	int i = 0;
+	int in_quote = 0;
 	while (line[i] != '\0') {
-		if (line[i] == ' ') {
-			line[i] = full_block;
+		if (in_quote) {
+			if (line[i] == '"') {
+				in_quote = 0;
+				line[i] = full_block;
+				i++;
+				continue;
+			}
 			i++;
 			continue;
-		}
-		if (line[i] == '<') {
-			insert_blank(line, i);
-			insert_blank(line, i + 2);
-			line[i] = full_block;
-			line[i + 2] = full_block;
-			i = i + 2;
-			i++;
-			continue;
-		}
-		if (line[i] == '>') {
-			// case: a > b
-			if ((line + i + 1 != NULL) && (line[i + 1] != '>')) {
+
+		} else {
+			if (line[i] == '"') {
+				in_quote = 1;
+				line[i] = full_block;
+				i++;
+				continue;
+			}
+			if (line[i] == ' ') {
+				line[i] = full_block;
+				i++;
+				continue;
+			}
+			if (line[i] == '<') {
 				insert_blank(line, i);
 				insert_blank(line, i + 2);
 				line[i] = full_block;
@@ -32,16 +39,30 @@ void parse_cmd_insert_sep(char* line, struct Cmd_status* cmd_io_status,
 				i++;
 				continue;
 			}
-			// case: a>>b
-			if ((line + i + 1 != NULL) && (line[i + 1] == '>')) {
-				insert_blank(line, i);
-				insert_blank(line, i + 3);
-				line[i] = full_block;
-				line[i + 3] = full_block;
-				i += 2;
+			if (line[i] == '>') {
+				// case: a > b
+				if ((line + i + 1 != NULL) &&
+				    (line[i + 1] != '>')) {
+					insert_blank(line, i);
+					insert_blank(line, i + 2);
+					line[i] = full_block;
+					line[i + 2] = full_block;
+					i = i + 2;
+					i++;
+					continue;
+				}
+				// case: a>>b
+				if ((line + i + 1 != NULL) &&
+				    (line[i + 1] == '>')) {
+					insert_blank(line, i);
+					insert_blank(line, i + 3);
+					line[i] = full_block;
+					line[i + 3] = full_block;
+					i += 2;
+				}
 			}
+			i++;
 		}
-		i++;
 	}
 }
 
