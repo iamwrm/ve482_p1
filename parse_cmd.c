@@ -134,6 +134,10 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 		exit(EXIT_FAILURE);
 	}
 
+	if (check_input_line(line) == -1) {
+		return -1;
+	}
+
 	if (((line[strlen(line) - 2] == '<') ||
 	     (line[strlen(line) - 2] == '>'))) {
 		while (1) {
@@ -230,7 +234,7 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 		// printf("\n");
 		printf("\npipe num%d\n", cmd_io_status->pipe_number);
 	}
-	return 1;
+	return 0;
 }
 
 void insert_blank(char* line, int pos)

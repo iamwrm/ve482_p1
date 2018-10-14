@@ -96,7 +96,13 @@ int main()
 		if (read_line(line)) {
 			continue;
 		}
-		parse_cmd(line, argv, &cmd_io_status, extra_space);
+
+		int pa_value =
+		    parse_cmd(line, argv, &cmd_io_status, extra_space);
+		if (pa_value == -1) {
+			clear_buffer(&cmd_io_status, argv, line);
+			continue;
+		}
 
 		if (DEBUG_MODE) {
 			print_argv(argv);

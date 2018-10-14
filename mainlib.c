@@ -2,6 +2,55 @@
 #define wr_head
 #include "mainlib.h"
 #endif
+int check_input_line(char* line)
+{
+	//TODO:
+	return 0;
+	int i = 0;
+	int exist = 0;
+	while (line[i] != '\0') {
+		if ((line[i] == '>') || (line[i] == '<') || (line[i] == ']')) {
+			if (!exist) {
+				exist = 1;
+				i++;
+				continue;
+			}
+			if (exist) {
+				exist = 0;
+				int non_sep = 0;
+				if ((line[i] == '>') || (line[i] == '<') ||
+				    (line[i] == ']')) {
+					int back_start = i;
+					while (1) {
+						if (line + back_start == NULL) {
+							break;
+						}
+						back_start--;
+						if (line[back_start] != '[') {
+							non_sep = 1;
+						}
+						if ((line[back_start] == '>') ||
+						    (line[back_start] == '<') ||
+						    (line[back_start] == ']')) {
+							break;
+						}
+					}
+					if (!non_sep) {
+						fprintf(stderr,
+							"syntax error near "
+							"unexpected "
+							"token `%c'\n",
+							line[i]);
+						return -1;
+					}
+				}
+			}
+		}
+		i++;
+	}
+	return 0;
+}
+
 int check_between_token(char** argv)
 {
 	int i = 0;

@@ -28,6 +28,7 @@ struct Cmd_status {
 	char* temp_out_file_name;
 };
 
+int check_input_line(char* argv);
 int check_missing_program(char** argv);
 int check_between_token(char** argv);
 void check_em_re(char** argv);
