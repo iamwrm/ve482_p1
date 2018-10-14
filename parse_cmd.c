@@ -188,7 +188,6 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 					position++;
 					arg = strtok(NULL, sep_er);
 				}
-				argv[position] = NULL;
 				if (position > 1) {
 					if ((strcmp(argv[position - 1], "<") ==
 					     0) ||
@@ -196,14 +195,18 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 					     0) ||
 					    (strcmp(argv[position - 1], "]") ==
 					     0)) {
-						printf("continued \n");
+						// printf("continued \n");
+						argv[position - 1] = "]";
+						// position++;
 						continue;
 					}
 				}
+				argv[position] = NULL;
 				break;
 			}
 		}
 	}
+	argv[position] = NULL;
 
 	if (DEBUG_MODE) {
 		int gg = 0;
