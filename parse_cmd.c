@@ -144,6 +144,10 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 			read_line(extra_space);
 			strcat(line, extra_space);
 			parse_cmd_insert_sep(line, cmd_io_status, full_block);
+			if (DEBUG_MODE) {
+				printf("DEBUG: in loop parsed line:%s\n",
+				       extra_space);
+			}
 			if (((line[strlen(line) - 2] == '<') ||
 			     (line[strlen(line) - 2] == '>'))) {
 				continue;

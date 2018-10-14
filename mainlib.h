@@ -28,6 +28,7 @@ struct Cmd_status {
 	char* temp_out_file_name;
 };
 
+
 int check_du_re(char** argv);
 void print_argv(char** argv);
 
@@ -42,7 +43,7 @@ void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 
 void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1);
 
-void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds);
+int cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds);
 
 int find_the_nth_pipe(char** argv, int n);
 

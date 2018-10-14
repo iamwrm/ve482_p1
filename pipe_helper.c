@@ -1,5 +1,33 @@
 #include "mainlib.h"
 
+int set_io_red_count(char** argv, int* i_r, int* o_r)
+{
+	int i = 0;
+	int out_r = 0;
+	int in_r = 0;
+
+	while (argv[i] != NULL) {
+		if (strcmp(argv[i], ">") == 0) {
+			out_r++;
+			i++;
+			continue;
+		}
+		if (strcmp(argv[i], ">>") == 0) {
+			out_r++;
+			i++;
+			continue;
+		}
+		if (strcmp(argv[i], "<") == 0) {
+			in_r++;
+			i++;
+			continue;
+		}
+		i++;
+	}
+	*i_r = in_r;
+	*o_r = out_r;
+	return 0;
+}
 // fds_1-> input , fds-> output
 void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 	     int* fds)
@@ -8,6 +36,22 @@ void cmd_mid(struct Cmd_status* cmd_io_status, char** cmd2, int* fds_1,
 	close(fds_1[1]);
 	dup2(fds[1], 1);
 	close(fds[0]);
+	int i_d_c = 0, o_d_c = 0;
+	set_io_red_count(cmd2, &i_d_c, &o_d_c);
+	if (o_d_c > 0) {
+		fprintf(stderr, "error: duplicated output redirection\n");
+		close(fds_1[0]);
+		close(fds[1]);
+		exit(0);
+		return;
+	}
+	if (i_d_c > 0) {
+		fprintf(stderr, "error: duplicated input redirection\n");
+		close(fds_1[0]);
+		close(fds[1]);
+		exit(0);
+		return;
+	}
 	set_redirect_status(cmd_io_status, cmd2);
 	if (my_execvp(cmd2[0], cmd2)) {
 		fprintf(stderr, "%s: command not found\n", cmd2[0]);
@@ -20,6 +64,15 @@ void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
 {
 	dup2(fds_1[1], 1);
 	close(fds_1[0]);
+	int i_d_c = 0, o_d_c = 0;
+	set_io_red_count(cmd1, &i_d_c, &o_d_c);
+	if (o_d_c > 0) {
+		fprintf(stderr, "error: duplicated output redirection\n");
+		close(fds_1[1]);
+		exit(0);
+		return;
+	}
+
 	set_redirect_status(cmd_io_status, cmd1);
 	if (my_execvp(cmd1[0], cmd1)) {
 		fprintf(stderr, "%s: command not found\n", cmd1[0]);
@@ -28,15 +81,25 @@ void cmd_head(struct Cmd_status* cmd_io_status, char** cmd1, int* fds_1)
 }
 
 // fds-> input
-void cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds)
+int cmd_tail(struct Cmd_status* cmd_io_status, char** cmd3, int* fds)
 {
 	dup2(fds[0], 0);
 	close(fds[1]);
+	int i_d_c = 0, o_d_c = 0;
+	set_io_red_count(cmd3, &i_d_c, &o_d_c);
+	if (i_d_c > 0) {
+		close(fds[0]);
+		fprintf(stderr, "error: duplicated input redirection\n");
+		fflush(stderr);
+		return -1;
+		exit(EXIT_FAILURE);
+	}
 	set_redirect_status(cmd_io_status, cmd3);
 	if (my_execvp(cmd3[0], cmd3)) {
 		fprintf(stderr, "%s: command not found\n", cmd3[0]);
 		exit(EXIT_FAILURE);
 	}
+	return 0;
 }
 
 void pipe_helper(char** argv, struct Cmd_status* cmd_io_status, int init_depth,
@@ -192,7 +255,12 @@ void pipe_command_1(char** argv, struct Cmd_status* cmd_io_status)
 			cmd_head(cmd_io_status, cmd1, fds);
 		} else {
 			// cmd3
-			cmd_tail(cmd_io_status, cmd2, fds);
+			if (cmd_tail(cmd_io_status, cmd2, fds) == -1) {
+				close(fds[0]);
+				close(fds[1]);
+				exit(EXIT_FAILURE);
+				return;
+			}
 		}
 	} else {
 		if (WAIT_IN_PARENT) {

@@ -234,7 +234,7 @@ int check_du_re(char** argv)
 		exit(0);
 		return 1;
 	}
-	if (out_r > 1) {
+	if (in_r > 1) {
 		fprintf(stderr, "error: duplicated input redirection\n");
 		exit(0);
 		return 1;
