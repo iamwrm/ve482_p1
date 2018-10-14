@@ -136,13 +136,21 @@ int parse_cmd(char* line, char** argv, struct Cmd_status* cmd_io_status,
 
 	if (((line[strlen(line) - 2] == '<') ||
 	     (line[strlen(line) - 2] == '>'))) {
-		printf("> ");
-		fflush(stdout);
-		fflush(stderr);
-		fflush(stdin);
-		read_line(extra_space);
-		strcat(line, extra_space);
-		parse_cmd_insert_sep(line, cmd_io_status, full_block);
+		while (1) {
+			printf("> ");
+			fflush(stdout);
+			fflush(stderr);
+			fflush(stdin);
+			read_line(extra_space);
+			strcat(line, extra_space);
+			parse_cmd_insert_sep(line, cmd_io_status, full_block);
+			if (((line[strlen(line) - 2] == '<') ||
+			     (line[strlen(line) - 2] == '>'))) {
+				continue;
+			}
+
+			break;
+		}
 	}
 
 	// char sep_er[20];

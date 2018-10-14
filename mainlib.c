@@ -76,12 +76,21 @@ void set_redirect_status(struct Cmd_status* cmd_io_status, char** argv)
 	if (cmd_io_status->o_redirected == 1) {
 		int outfile = open(cmd_io_status->temp_out_file_name,
 				   FLAGS_WRITE, MODE_WR);
+		if ((outfile == -1) && (1)) {
+			printf("%s: Permission denied\n",
+			       cmd_io_status->temp_out_file_name);
+			exit(0);
+		}
 		dup2(outfile, STDOUT_FILENO);
 	}
 	if (cmd_io_status->o_redirected == 2) {
 		int outfile = open(cmd_io_status->temp_out_file_name,
 				   FLAG_APPEND, MODE_WR);
-
+		if ((outfile == -1) && (1)) {
+			printf("%s: Permission denied\n",
+			       cmd_io_status->temp_out_file_name);
+			exit(0);
+		}
 		dup2(outfile, STDOUT_FILENO);
 	}
 	if (cmd_io_status->i_redirected == 1) {
