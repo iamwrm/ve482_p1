@@ -34,6 +34,9 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 	if (check_missing_program(argv) < 0) {
 		return -1;
 	}
+	if (check_between_token(argv) < 0) {
+		return -1;
+	}
 	if (cmd_io_status->pipe_number > 3) {
 		pipe_helper(argv, cmd_io_status,
 			    cmd_io_status->init_pipe_number,

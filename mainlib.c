@@ -2,6 +2,38 @@
 #define wr_head
 #include "mainlib.h"
 #endif
+int check_between_token(char** argv)
+{
+	int i = 0;
+	int exist = 0;
+	while (argv[i] != NULL) {
+		if ((strcmp(argv[i], ">") == 0) ||
+		    (strcmp(argv[i], "<") == 0) ||
+		    (strcmp(argv[i], "]") == 0)) {
+			if (!exist) {
+				exist = 1;
+			}
+			if (exist) {
+				exist = 0;
+				if ((strcmp(argv[i - 1], ">") == 0) ||
+				    (strcmp(argv[i - 1], "<") == 0) ||
+				    (strcmp(argv[i - 1], "]") == 0)) {
+					if (strcmp(argv[i], "]") == 0) {
+						argv[i] = "|";
+					}
+					fprintf(stderr,
+						"syntax error near unexpected "
+						"token `%s'\n",
+						argv[i]);
+					return -1;
+				}
+			}
+		}
+		i++;
+	}
+	return 0;
+}
+
 int check_missing_program(char** argv)
 {
 	int i = 0;
