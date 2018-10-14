@@ -2,6 +2,37 @@
 #define wr_head
 #include "mainlib.h"
 #endif
+int check_missing_program(char** argv)
+{
+	int i = 0;
+	while (argv[i] != NULL) {
+		if ((i > 1) && (strcmp(argv[i], "]") == 0)) {
+			if (strcmp(argv[i - 1], argv[i]) == 0) {
+				fprintf(stderr, "error: missing program\n");
+				return -1;
+			}
+		}
+		i++;
+	}
+	return 0;
+}
+void check_em_re(char** argv)
+{
+	int i = 0;
+	int red_pos = 0;
+
+	while (strcmp(argv[i], "]") == 0) {
+		if (strcmp(argv[i], ">") == 0) {
+			red_pos = i;
+		}
+		i++;
+	}
+	if (red_pos == i - 1) {
+		fprintf(stderr, "syntax error near unexpected token '>'\n");
+	}
+
+	return;
+}
 
 int my_execvp(char* cmdhead, char** cmd)
 {
@@ -50,6 +81,7 @@ void dup_and_exc(struct Cmd_status* cmd_io_status, char** argv)
 	pid_d = fork();
 
 	if (pid_d == 0) {
+		check_em_re(argv);
 		check_du_re(argv);
 		set_redirect_status(cmd_io_status, argv);
 

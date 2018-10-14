@@ -31,6 +31,9 @@ int process_cmd(char** argv, struct Cmd_status* cmd_io_status)
 	}
 	cmd_io_status->init_pipe_number = cmd_io_status->pipe_number;
 	// signal(SIGINT, psig_handler);
+	if (check_missing_program(argv) < 0) {
+		return -1;
+	}
 	if (cmd_io_status->pipe_number > 3) {
 		pipe_helper(argv, cmd_io_status,
 			    cmd_io_status->init_pipe_number,
@@ -95,9 +98,14 @@ int main()
 		if (DEBUG_MODE) {
 			print_argv(argv);
 		}
+		int pc_value = process_cmd(argv, &cmd_io_status);
 
-		if (process_cmd(argv, &cmd_io_status)) {
+		if (pc_value == 1) {
 			break;
+		}
+		if (pc_value == -1) {
+			clear_buffer(&cmd_io_status, argv, line);
+			continue;
 		}
 		clear_buffer(&cmd_io_status, argv, line);
 	}

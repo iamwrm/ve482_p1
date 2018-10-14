@@ -28,7 +28,8 @@ struct Cmd_status {
 	char* temp_out_file_name;
 };
 
-
+int check_missing_program(char** argv);
+void check_em_re(char** argv);
 int check_du_re(char** argv);
 void print_argv(char** argv);
 
